@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Presentation {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  date      String
+  slides    Json
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("presentations")
+}
