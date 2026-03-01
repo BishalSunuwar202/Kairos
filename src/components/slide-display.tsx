@@ -39,7 +39,7 @@ export function SlideDisplay({ slide }: SlideDisplayProps) {
       </span>
 
       <h1
-        className="mb-6 leading-tight"
+        className="mb-6 leading-tight text-center"
         style={{
           fontSize: titleSize,
           color: titleColor,
@@ -51,13 +51,13 @@ export function SlideDisplay({ slide }: SlideDisplayProps) {
       </h1>
 
       {slide.type === 'lyrics' && slide.subtitle && (
-        <p className="text-sm font-semibold uppercase tracking-widest text-gray-400 mb-3">
+        <p className="text-sm font-semibold uppercase tracking-widest text-gray-400 mb-3 text-center">
           {slide.subtitle}
         </p>
       )}
 
       <p
-        className="whitespace-pre-wrap leading-relaxed"
+        className="whitespace-pre-wrap leading-relaxed text-center"
         style={{
           fontSize: contentSize,
           color: contentColor,
@@ -69,7 +69,7 @@ export function SlideDisplay({ slide }: SlideDisplayProps) {
       </p>
 
       {slide.type !== 'lyrics' && slide.subtitle && (
-        <p className="text-2xl text-gray-400 mt-4">{slide.subtitle}</p>
+        <p className="text-2xl text-gray-400 mt-4 text-center">{slide.subtitle}</p>
       )}
 
       <span className="absolute bottom-6 right-8 text-3xl text-gray-200 select-none">
