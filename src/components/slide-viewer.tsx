@@ -5,10 +5,10 @@ import { usePresentationStore } from '@/store/presentation-store'
 import { SlideDisplay } from './slide-display'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, Maximize2, Minimize2, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Maximize2, Minimize2, RotateCcw, X } from 'lucide-react'
 
 export function SlideViewer() {
-  const { slides, currentSlide, isPresenting, setIsPresenting, nextSlide, prevSlide } =
+  const { slides, currentSlide, isPresenting, setIsPresenting, nextSlide, prevSlide, setCurrentSlide } =
     usePresentationStore()
   const containerRef = useRef<HTMLDivElement>(null)
   const isFullscreen = typeof document !== 'undefined' && !!document.fullscreenElement
@@ -52,6 +52,15 @@ export function SlideViewer() {
         </Button>
 
         <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCurrentSlide(0)}
+            disabled={currentSlide === 0}
+            title="Restart from beginning"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </Button>
           <Button variant="outline" size="icon" onClick={prevSlide} disabled={currentSlide === 0}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
@@ -65,6 +74,14 @@ export function SlideViewer() {
             disabled={currentSlide === slides.length - 1}
           >
             <ChevronRight className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setCurrentSlide(Math.floor((slides.length - 1) / 2))}
+            title="Jump to middle slide"
+          >
+            Mid
           </Button>
         </div>
 
