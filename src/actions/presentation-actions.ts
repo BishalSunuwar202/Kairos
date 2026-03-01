@@ -1,25 +1,18 @@
 'use server'
 
-import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type { Slide } from '@/lib/types'
+import type { Slide, Presentation } from '@/lib/types'
 
-async function getUser() {
+export async function listPresentations(): Promise<Presentation[]> {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
-  return user
-}
+  const { data, error } = await supabase
+    .from('presentations')
+    .select('*')
+    .order('created_at', { ascending: false })
 
-export async function listPresentations() {
-  const user = await getUser()
-  return prisma.presentation.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: 'desc' },
-  })
+  if (error) throw new Error(error.message)
+  return data ?? []
 }
 
 export async function savePresentation(data: {
@@ -27,22 +20,21 @@ export async function savePresentation(data: {
   date: string
   slides: Slide[]
 }) {
-  const user = await getUser()
-  await prisma.presentation.create({
-    data: {
-      userId: user.id,
-      title: data.title,
-      date: data.date,
-      slides: data.slides,
-    },
+  const supabase = await createClient()
+  const { error } = await supabase.from('presentations').insert({
+    title: data.title,
+    date: data.date,
+    slides: data.slides,
   })
+
+  if (error) throw new Error(error.message)
   revalidatePath('/library')
 }
 
 export async function deletePresentation(id: string) {
-  const user = await getUser()
-  await prisma.presentation.deleteMany({
-    where: { id, userId: user.id },
-  })
+  const supabase = await createClient()
+  const { error } = await supabase.from('presentations').delete().eq('id', id)
+
+  if (error) throw new Error(error.message)
   revalidatePath('/library')
 }

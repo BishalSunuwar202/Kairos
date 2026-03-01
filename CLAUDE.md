@@ -17,10 +17,10 @@
 - After mutations, use `revalidatePath()` to update cached data
 
 ## AI / Claude
-- Always use Vercel AI SDK (`ai` + `@ai-sdk/anthropic`) — never call Anthropic API directly with fetch
-- Model: `claude-sonnet-4-6`
-- Use `streamText` for streaming responses in API routes
-- Return `result.toDataStreamResponse()` from route handlers
+- Always use Vercel AI SDK (`ai` + provider package) — never call AI APIs directly with fetch
+- Model: `gemini-2.5-flash-lite` via `@ai-sdk/google`
+- Use `generateText` for structured data (JSON) responses — returns complete text, easier to parse
+- Use `streamText` only for chat/prose where partial output is useful to the user
 
 ## State Management
 - Zustand for client-only UI state (slide viewer, presentation slides)
@@ -31,13 +31,12 @@
 - Do not add packages that duplicate existing functionality
 - Tailwind v4 is installed — do not install v3 utilities or plugins
 
-## Database / Prisma
-- Use Prisma client (`src/lib/prisma.ts`) for ALL database reads and writes
-- Never use Supabase client for database queries — Supabase is auth-only
-- Always verify user identity via Supabase `auth.getUser()` in Server Actions before any DB operation
-- Use `userId` check in every Prisma query to prevent cross-user data access
-- Prisma client is generated to `src/generated/prisma` — import from there
-- Run `npx prisma migrate dev` for schema changes, never edit the DB directly
+## Database / Supabase
+- Use Supabase client (`src/lib/supabase/server.ts`) for ALL database reads and writes in Server Actions
+- Use Supabase client (`src/lib/supabase/client.ts`) for auth interactions in Client Components
+- No Prisma — table schema is managed via Supabase SQL Editor
+- RLS (Row Level Security) is enabled on all tables — user isolation is enforced at the database level
+- Never bypass RLS by using the service role key in client-facing code
 
 ## Code Style
 - TypeScript strict mode — no `any` types
