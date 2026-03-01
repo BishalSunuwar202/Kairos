@@ -47,12 +47,13 @@ export function Navbar({ user }: NavbarProps) {
           <nav className="flex items-center gap-5">
             {navLink('/', 'Create')}
             {navLink('/library', 'Library')}
+            {navLink('/songs', 'Songs')}
           </nav>
         </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="focus:outline-none">
+            <button className="focus:outline-none" suppressHydrationWarning>
               <Avatar className="w-8 h-8 cursor-pointer">
                 <AvatarImage src={avatarUrl} />
                 <AvatarFallback className="bg-[#f59e0b] text-[#1a3a5c] text-xs font-bold">
