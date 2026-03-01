@@ -140,117 +140,48 @@ export async function lookupBible(
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Song lyrics lookup — Song Library (Supabase) → nepalichristiansongs.com
+// Song lyrics lookup — Song Library (Supabase) → lyrics-storage (external Supabase)
 // ─────────────────────────────────────────────────────────────────
 
-// Nepali first character → PHP file name on nepalichristiansongs.com
-const NEPALI_FILE_MAP: Record<string, string> = {
-  'अ': 'a', 'आ': 'aa', 'इ': 'i', 'ई': 'ii', 'उ': 'u', 'ऊ': 'uu',
-  'ऋ': 'R_', 'ए': 'e', 'ऐ': 'ai', 'ओ': 'o', 'औ': 'au',
-  'क': 'k', 'ख': 'kh', 'ग': 'g', 'घ': 'gh', 'ङ': 'Ng',
-  'च': 'ch', 'छ': 'chh', 'ज': 'j', 'झ': 'jh', 'ञ': 'Nj',
-  'ट': 'T_', 'ठ': 'T_h', 'ड': 'D_', 'ढ': 'D_h', 'ण': 'N_',
-  'त': 't', 'थ': 'th', 'द': 'd', 'ध': 'dh', 'न': 'n',
-  'प': 'p', 'फ': 'ph', 'ब': 'b', 'भ': 'bh', 'म': 'm',
-  'य': 'y', 'र': 'r', 'ल': 'l', 'व': 'w',
-  'श': 'sh', 'ष': 'S_h', 'स': 's', 'ह': 'h',
-}
+async function lookupFromLyricsStorage(query: {
+  title?: string
+  number?: number
+}): Promise<string | null> {
+  const url = process.env.LYRICS_SUPABASE_URL
+  const key = process.env.LYRICS_SUPABASE_ANON_KEY
+  if (!url || !key) return null
 
-// Virama (halant) character
-const VIRAMA = '\u094D'
-
-function getFileKey(title: string): string | null {
-  if (!title) return null
-  // Composite consonants: check first 3 chars (consonant + virama + consonant)
-  if (title.length >= 3 && title[1] === VIRAMA) {
-    const comp = title.slice(0, 3)
-    if (comp === 'क्ष') return 'kSh'
-    if (comp === 'त्र') return 'tr'
-    if (comp === 'ज्ञ') return 'Gy'
+  const headers = {
+    apikey: key,
+    Authorization: `Bearer ${key}`,
   }
-  return NEPALI_FILE_MAP[title[0]] ?? null
-}
 
-function extractWriteln(html: string): string {
-  const parts: string[] = []
-  const regex = /document\.write(?:ln)?\('((?:[^'\\]|\\.)*)'\)/g
-  let match
-  while ((match = regex.exec(html)) !== null) {
-    parts.push(match[1].replace(/\\'/g, "'").replace(/\\n/g, '\n'))
+  // Search by number first (number column is varchar in lyrics-storage)
+  if (query.number) {
+    const res = await fetch(
+      `${url}/rest/v1/lyrics?number=eq.${query.number}&select=content&limit=1`,
+      { headers }
+    )
+    if (res.ok) {
+      const data: { content: string }[] = await res.json()
+      if (data[0]?.content) return data[0].content.trim()
+    }
   }
-  return parts.join('\n')
-}
 
-function cleanLyricsHtml(html: string): string {
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/\[शब्द:[^\]]*\]/g, '')
-    .replace(/\[संगीत:[^\]]*\]/g, '')
-    .split('\n').map(l => l.trim()).filter(Boolean).join('\n')
-    .trim()
-}
-
-async function scrapeByTitle(title: string): Promise<string | null> {
-  const fileKey = getFileKey(title)
-  if (!fileKey) return null
-
-  try {
-    const res = await fetch(`https://www.nepalichristiansongs.com/${fileKey}.php`, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Kairos/1.0)' },
-    })
-    if (!res.ok) return null
-
-    const html = await res.text()
-    const content = extractWriteln(html)
-
-    // Collect all song title → id pairs from the page
-    const dtRegex = /onclick="ddToggle\('(song\d+)'\)">([^<]+)<\/a>/g
-    const songs: { id: string; siteTitle: string }[] = []
-    let m
-    while ((m = dtRegex.exec(content)) !== null) {
-      songs.push({ id: m[1], siteTitle: m[2] })
+  // Search by title (ILIKE) — PostgREST uses * as wildcard in URL params
+  if (query.title) {
+    const titleParam = encodeURIComponent(query.title)
+    const res = await fetch(
+      `${url}/rest/v1/lyrics?title=ilike.*${titleParam}*&select=content&limit=1`,
+      { headers }
+    )
+    if (res.ok) {
+      const data: { content: string }[] = await res.json()
+      if (data[0]?.content) return data[0].content.trim()
     }
-
-    // Normalize helper: NFC + collapse whitespace + lowercase
-    const norm = (s: string) => s.normalize('NFC').replace(/\s+/g, ' ').trim().toLowerCase()
-    const queryNorm = norm(title)
-    // First significant word (4+ Devanagari chars) for fallback matching
-    const firstWord = queryNorm.split(/\s+/).find(w => w.length >= 4) ?? ''
-
-    let foundId: string | null = null
-
-    // Pass 1: full normalised title contains match
-    for (const song of songs) {
-      if (norm(song.siteTitle).includes(queryNorm)) { foundId = song.id; break }
-    }
-    // Pass 2: site title contains the query's first significant word
-    if (!foundId && firstWord) {
-      for (const song of songs) {
-        if (norm(song.siteTitle).includes(firstWord)) { foundId = song.id; break }
-      }
-    }
-    // Pass 3: query contains the site title (for when site title is more abbreviated)
-    if (!foundId) {
-      for (const song of songs) {
-        const st = norm(song.siteTitle)
-        if (st.length >= 4 && queryNorm.includes(st)) { foundId = song.id; break }
-      }
-    }
-
-    if (!foundId) return null
-
-    // Extract the DD (lyrics block) for this song
-    const ddRegex = new RegExp(`<dd id="${foundId}"[^>]*>([\\s\\S]*?)</dd>`, 'i')
-    const ddMatch = ddRegex.exec(content)
-    if (!ddMatch) return null
-
-    const lyrics = cleanLyricsHtml(ddMatch[1])
-    return lyrics || null
-  } catch {
-    return null
   }
+
+  return null
 }
 
 export async function lookupSong(query: {
@@ -259,7 +190,7 @@ export async function lookupSong(query: {
 }): Promise<{ found: boolean; lyrics: string; source: 'library' | 'web' | 'none' }> {
   const supabase = await createClient()
 
-  // Step 1: Check Song Library
+  // Step 1: Check Song Library (Kairos Supabase)
   let dbData: { lyrics: string } | null = null
 
   if (query.number) {
@@ -286,11 +217,9 @@ export async function lookupSong(query: {
     return { found: true, lyrics: dbData.lyrics, source: 'library' }
   }
 
-  // Step 2: Scrape nepalichristiansongs.com (title only — numbers not indexed on site)
-  if (query.title) {
-    const scraped = await scrapeByTitle(query.title)
-    if (scraped) return { found: true, lyrics: scraped, source: 'web' }
-  }
+  // Step 2: Query lyrics-storage (external Supabase)
+  const external = await lookupFromLyricsStorage(query)
+  if (external) return { found: true, lyrics: external, source: 'web' }
 
   return { found: false, lyrics: '', source: 'none' }
 }
