@@ -8,12 +8,26 @@ export type SlideType =
   | 'announcements'
   | 'closing-prayer'
 
+export interface SlideFormat {
+  backgroundColor?: string
+  titleSize?: number
+  titleBold?: boolean
+  titleUnderline?: boolean
+  titleColor?: string
+  contentSize?: number
+  contentBold?: boolean
+  contentUnderline?: boolean
+  contentColor?: string
+  padding?: number
+}
+
 export interface Slide {
   id: number
   type: SlideType
   title: string
   content: string
   subtitle?: string
+  format?: SlideFormat
 }
 
 export interface Presentation {
@@ -25,12 +39,17 @@ export interface Presentation {
   created_at: string
 }
 
+export interface SongEntry {
+  title: string
+  lyricsText: string
+  image?: { base64: string; mediaType: string }
+}
+
 export interface GenerateRequest {
   fellowshipDate: string
   anchorName: string
   sermonLeader: string
-  songLyricsText: string
-  songLyricsImage?: { base64: string; mediaType: string }
+  songs: SongEntry[]
   bibleRef: string
   bibleText: string
   announcements: string

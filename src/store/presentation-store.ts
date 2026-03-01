@@ -1,9 +1,11 @@
 import { create } from 'zustand'
-import type { Slide } from '@/lib/types'
+import type { Slide, SlideFormat } from '@/lib/types'
 
 interface PresentationStore {
   slides: Slide[]
   setSlides: (slides: Slide[]) => void
+  updateSlide: (index: number, updates: Partial<Slide>) => void
+  applyFormatToAll: (patch: Partial<SlideFormat>) => void
 
   isPresenting: boolean
   setIsPresenting: (value: boolean) => void
@@ -17,6 +19,18 @@ interface PresentationStore {
 export const usePresentationStore = create<PresentationStore>((set, get) => ({
   slides: [],
   setSlides: (slides) => set({ slides, currentSlide: 0 }),
+  updateSlide: (index, updates) => {
+    const slides = [...get().slides]
+    slides[index] = { ...slides[index], ...updates }
+    set({ slides })
+  },
+  applyFormatToAll: (patch) => {
+    const slides = get().slides.map((s) => ({
+      ...s,
+      format: { ...(s.format ?? {}), ...patch },
+    }))
+    set({ slides })
+  },
 
   isPresenting: false,
   setIsPresenting: (value) => set({ isPresenting: value }),
