@@ -1,8 +1,13 @@
 import { generateText } from 'ai'
 import { google } from '@ai-sdk/google'
+import { createClient } from '@/lib/supabase/server'
 import type { GenerateRequest } from '@/lib/types'
 
 export async function POST(req: Request) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return new Response('Unauthorized', { status: 401 })
+
   const body: GenerateRequest = await req.json()
 
   const userMessage = JSON.stringify({
