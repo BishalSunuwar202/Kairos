@@ -1,5 +1,16 @@
-import type { Slide } from '@/lib/types'
+import type { Slide, SlideType } from '@/lib/types'
 import { SLIDE_COLORS } from '@/lib/types'
+
+const TYPE_LABELS: Record<SlideType, string> = {
+  'welcome':        'स्वागत',
+  'host':           'आयोजक',
+  'opening-prayer': 'आरम्भिक प्रार्थना',
+  'lyrics':         'भजन',
+  'bible':          'बाइबल',
+  'sermon':         'उपदेश',
+  'announcements':  'सूचनाहरू',
+  'closing-prayer': 'समापन प्रार्थना',
+}
 
 interface SlideDisplayProps {
   slide: Slide
@@ -35,7 +46,7 @@ export function SlideDisplay({ slide }: SlideDisplayProps) {
       }}
     >
       <span className="absolute top-4 left-6 text-xs uppercase tracking-widest text-gray-400 font-medium">
-        {slide.type.replace('-', ' ')}
+        {TYPE_LABELS[slide.type]}
       </span>
 
       <h1
