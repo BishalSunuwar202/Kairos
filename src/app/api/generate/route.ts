@@ -33,8 +33,7 @@ export async function POST(req: Request) {
         lyricsText: s.lyricsText,
         hasImage: !!s.image,
       })),
-      bibleRef: body.bibleRef,
-      bibleText: body.bibleText,
+      bibleRefs: body.bibleRefs,
       announcements: body.announcements,
       prayerPoints: body.prayerPoints,
     }),
@@ -47,7 +46,7 @@ Return ONLY a valid JSON array of slide objects. No markdown, no code fences, no
 Each object must have: { "id": number, "type": string, "title": string, "content": string, "subtitle"?: string }
 Valid types: welcome, host, opening-prayer, lyrics, bible, sermon, announcements, closing-prayer
 
-Slide order: welcome → host → opening-prayer → lyrics → bible → sermon → announcements → closing-prayer
+Slide order: welcome → host → opening-prayer → lyrics → bible (one slide per reference) → sermon → announcements → closing-prayer
 
 For lyrics slides:
 - Split each song into one slide per section (Verse 1, Chorus, Verse 2, Bridge, etc.)
