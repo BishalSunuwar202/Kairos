@@ -124,3 +124,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+@media print {
+  body > * { display: none !important; }
+  .print-slides { display: block !important; }
+  .print-slide {
+    page-break-after: always;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+}
