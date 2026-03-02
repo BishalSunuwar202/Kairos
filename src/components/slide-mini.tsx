@@ -1,5 +1,16 @@
-import type { Slide } from '@/lib/types'
+import type { Slide, SlideType } from '@/lib/types'
 import { SLIDE_COLORS } from '@/lib/types'
+
+const TYPE_LABELS: Record<SlideType, string> = {
+  'welcome':        'स्वागत',
+  'host':           'आयोजक',
+  'opening-prayer': 'आरम्भिक प्रार्थना',
+  'lyrics':         'भजन',
+  'bible':          'बाइबल',
+  'sermon':         'उपदेश',
+  'announcements':  'सूचनाहरू',
+  'closing-prayer': 'समापन प्रार्थना',
+}
 
 interface SlideMiniProps {
   slide: Slide
@@ -15,12 +26,12 @@ export function SlideMini({ slide, index, isActive, onClick }: SlideMiniProps) {
     <button
       onClick={onClick}
       className={`w-full text-left rounded-lg border p-3 transition-all ${
-        isActive ? 'ring-2 ring-[#1a3a5c]' : 'hover:border-gray-300'
+        isActive ? 'ring-2 ring-[#1a3a5c] bg-[#1a3a5c]/5' : 'hover:border-gray-300'
       }`}
       style={{ borderTop: `4px solid ${borderColor}` }}
     >
       <p className="text-xs text-gray-400 mb-1">
-        {index + 1} · {slide.type.replace('-', ' ')}
+        {index + 1} · {TYPE_LABELS[slide.type]}
       </p>
       <p className="text-sm font-medium text-[#1a3a5c] truncate">{slide.title}</p>
       <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">{slide.content}</p>
