@@ -40,29 +40,7 @@ An AI-powered church presentation builder for Nepali Christian fellowship commun
    LYRICS_SUPABASE_ANON_KEY=eyJ...
    ```
 
-3. Create the `presentations` table in Supabase SQL Editor:
-   ```sql
-   CREATE TABLE presentations (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     user_id UUID REFERENCES auth.users NOT NULL,
-     title TEXT NOT NULL,
-     date TEXT NOT NULL,
-     slides JSONB NOT NULL,
-     created_at TIMESTAMPTZ DEFAULT now()
-   );
-
-   ALTER TABLE presentations ENABLE ROW LEVEL SECURITY;
-
-   CREATE POLICY "users manage own presentations"
-   ON presentations FOR ALL
-   USING (auth.uid() = user_id);
-
-   CREATE POLICY "public read presentations"
-   ON presentations FOR SELECT
-   USING (true);
-   ```
-
-4. Start dev server:
+3. Start dev server:
    ```bash
    npm run dev
    ```
