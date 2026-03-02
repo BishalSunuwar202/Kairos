@@ -13,7 +13,7 @@ import { savePresentation } from '@/actions/presentation-actions'
 import { lookupBible, lookupSong } from '@/actions/lookup-actions'
 import { toast } from 'sonner'
 import { ImagePlus, Loader2, Play, Plus, Save, Trash2 } from 'lucide-react'
-import type { GenerateRequest, Slide, SongEntry } from '@/lib/types'
+import type { BibleEntry, GenerateRequest, Slide, SongEntry } from '@/lib/types'
 
 interface SongState {
   number: string
@@ -35,15 +35,14 @@ export function CreateForm() {
     fellowshipDate: '',
     anchorName: '',
     sermonLeader: '',
-    bibleRef: '',
-    bibleText: '',
     announcements: '',
     prayerPoints: '',
   })
   const [songs, setSongs] = useState<SongState[]>([emptySong()])
+  const [bibleRefs, setBibleRefs] = useState<BibleEntry[]>([{ ref: '', text: '' }])
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [isFetchingBible, setIsFetchingBible] = useState(false)
+  const [fetchingBible, setFetchingBible] = useState<number | null>(null)
   const [fetchingSong, setFetchingSong] = useState<number | null>(null)
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([])
 
@@ -80,19 +79,32 @@ export function CreateForm() {
     reader.readAsDataURL(file)
   }
 
-  async function handleFetchBible() {
-    if (!form.bibleRef.trim()) return
-    setIsFetchingBible(true)
+  function updateBibleRef(index: number, field: keyof BibleEntry, value: string) {
+    setBibleRefs(prev => prev.map((b, i) => i === index ? { ...b, [field]: value } : b))
+  }
+
+  function addBibleRef() {
+    setBibleRefs(prev => [...prev, { ref: '', text: '' }])
+  }
+
+  function removeBibleRef(index: number) {
+    setBibleRefs(prev => prev.filter((_, i) => i !== index))
+  }
+
+  async function handleFetchBible(index: number) {
+    const ref = bibleRefs[index].ref.trim()
+    if (!ref) return
+    setFetchingBible(index)
     try {
-      const result = await lookupBible(form.bibleRef.trim())
+      const result = await lookupBible(ref)
       if ('error' in result) {
         toast.error(result.error)
       } else {
-        setForm(prev => ({ ...prev, bibleText: result.text }))
-        toast.success('Verse fetched (English KJV)')
+        updateBibleRef(index, 'text', result.text)
+        toast.success('Verse fetched')
       }
     } finally {
-      setIsFetchingBible(false)
+      setFetchingBible(null)
     }
   }
 
@@ -134,7 +146,7 @@ export function CreateForm() {
         ...(s.imageData ? { image: s.imageData } : {}),
       }))
 
-      const body: GenerateRequest = { ...form, songs: songEntries }
+      const body: GenerateRequest = { ...form, songs: songEntries, bibleRefs }
 
       const res = await fetch('/api/generate', {
         method: 'POST',
@@ -298,41 +310,54 @@ export function CreateForm() {
           ))}
         </div>
 
-        {/* Bible */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <Label htmlFor="bibleRef">Bible Reference</Label>
-            <div className="flex gap-1">
+        {/* Bible References */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label>Bible References</Label>
+            <Button type="button" variant="outline" size="sm" onClick={addBibleRef}>
+              <Plus className="w-3 h-3 mr-1" /> Add reference
+            </Button>
+          </div>
+
+          {bibleRefs.map((bible, i) => (
+            <div key={i} className="space-y-1">
+              <div className="flex gap-1">
+                <Input
+                  placeholder="e.g. John 3:16"
+                  value={bible.ref}
+                  onChange={(e) => updateBibleRef(i, 'ref', e.target.value)}
+                  className="h-8 text-sm"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs shrink-0"
+                  disabled={!bible.ref.trim() || fetchingBible === i}
+                  onClick={() => handleFetchBible(i)}
+                >
+                  {fetchingBible === i ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Fetch'}
+                </Button>
+                {bibleRefs.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0 text-gray-400 hover:text-red-500"
+                    onClick={() => removeBibleRef(i)}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                )}
+              </div>
               <Input
-                id="bibleRef"
-                name="bibleRef"
-                placeholder="e.g. John 3:16"
-                value={form.bibleRef}
-                onChange={handleChange}
-                className="h-9"
+                placeholder="Verse text (auto-filled or type)"
+                value={bible.text}
+                onChange={(e) => updateBibleRef(i, 'text', e.target.value)}
+                className="h-8 text-sm"
               />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="shrink-0 h-9"
-                disabled={!form.bibleRef.trim() || isFetchingBible}
-                onClick={handleFetchBible}
-              >
-                {isFetchingBible ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Fetch'}
-              </Button>
             </div>
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="bibleText">Bible Text</Label>
-            <Input
-              id="bibleText"
-              name="bibleText"
-              placeholder="Auto-filled or type verse..."
-              value={form.bibleText}
-              onChange={handleChange}
-            />
-          </div>
+          ))}
         </div>
 
         <div className="space-y-1">
