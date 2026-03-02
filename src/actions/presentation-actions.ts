@@ -43,3 +43,9 @@ export async function deletePresentation(id: string) {
   if (error) throw new Error(error.message)
   revalidatePath('/library')
 }
+
+export async function getPublicPresentation(id: string): Promise<Presentation | null> {
+  const supabase = await createClient()
+  const { data } = await supabase.from('presentations').select('*').eq('id', id).single()
+  return data ?? null
+}

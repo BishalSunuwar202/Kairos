@@ -5,7 +5,7 @@ import { usePresentationStore } from '@/store/presentation-store'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Trash2, Play } from 'lucide-react'
+import { Link2, Play, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import type { Slide } from '@/lib/types'
@@ -80,6 +80,17 @@ export function LibraryView({ presentations }: LibraryViewProps) {
               }}
             >
               Present
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              title="Copy share link"
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/p/${p.id}`)
+                toast.success('Share link copied!')
+              }}
+            >
+              <Link2 className="w-4 h-4" />
             </Button>
             <Button
               size="sm"
