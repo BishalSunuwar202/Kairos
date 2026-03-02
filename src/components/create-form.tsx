@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -12,19 +12,18 @@ import { usePresentationStore } from '@/store/presentation-store'
 import { savePresentation } from '@/actions/presentation-actions'
 import { lookupBible, lookupSong } from '@/actions/lookup-actions'
 import { toast } from 'sonner'
-import { ImagePlus, Loader2, Play, Plus, Save, Trash2 } from 'lucide-react'
+import { Loader2, Play, Plus, Save, Trash2 } from 'lucide-react'
 import type { BibleEntry, GenerateRequest, Slide, SongEntry } from '@/lib/types'
+import { DEMO_SLIDES } from '@/lib/demo-slides'
 
 interface SongState {
   number: string
   title: string
   lyricsText: string
-  imagePreview: string | null
-  imageData: { base64: string; mediaType: string } | null
 }
 
 function emptySong(): SongState {
-  return { number: '', title: '', lyricsText: '', imagePreview: null, imageData: null }
+  return { number: '', title: '', lyricsText: '' }
 }
 
 export function CreateForm() {
@@ -44,13 +43,12 @@ export function CreateForm() {
   const [isSaving, setIsSaving] = useState(false)
   const [fetchingBible, setFetchingBible] = useState<number | null>(null)
   const [fetchingSong, setFetchingSong] = useState<number | null>(null)
-  const fileInputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  function updateSong(index: number, field: keyof Pick<SongState, 'number' | 'title' | 'lyricsText'>, value: string) {
+  function updateSong(index: number, field: keyof SongState, value: string) {
     setSongs((prev) => prev.map((s, i) => i === index ? { ...s, [field]: value } : s))
   }
 
@@ -60,23 +58,6 @@ export function CreateForm() {
 
   function removeSong(index: number) {
     setSongs((prev) => prev.filter((_, i) => i !== index))
-  }
-
-  function handleSongImage(index: number, e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => {
-      const result = reader.result as string
-      const [header, base64] = result.split(',')
-      const mediaType = header.split(':')[1].split(';')[0]
-      setSongs((prev) =>
-        prev.map((s, i) =>
-          i === index ? { ...s, imagePreview: result, imageData: { base64, mediaType } } : s
-        )
-      )
-    }
-    reader.readAsDataURL(file)
   }
 
   function updateBibleRef(index: number, field: keyof BibleEntry, value: string) {
@@ -122,10 +103,10 @@ export function CreateForm() {
       if (result.found) {
         updateSong(index, 'lyricsText', result.lyrics)
         toast.success(
-          result.source === 'library' ? 'Found in your Song Library' : 'Found on nepalichristiansongs.com'
+          result.source === 'library' ? 'Found in song library' : 'Found on nepalichristiansongs.com'
         )
       } else {
-        toast.error('Not in Song Library. Add it at /songs, then Fetch again.')
+        toast.error('Song not found. Try a different title or number.')
       }
     } finally {
       setFetchingSong(null)
@@ -143,7 +124,6 @@ export function CreateForm() {
       const songEntries: SongEntry[] = songs.map((s) => ({
         title: s.title,
         lyricsText: s.lyricsText,
-        ...(s.imageData ? { image: s.imageData } : {}),
       }))
 
       const body: GenerateRequest = { ...form, songs: songEntries, bibleRefs }
@@ -191,7 +171,10 @@ export function CreateForm() {
     <div className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
       {/* Form */}
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold text-[#1a3a5c]">New Presentation</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-[#1a3a5c]">New Presentation</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Fill in the details below to generate slides</p>
+        </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
@@ -244,7 +227,7 @@ export function CreateForm() {
                   placeholder="#"
                   value={song.number}
                   onChange={(e) => updateSong(i, 'number', e.target.value)}
-                  className="h-7 text-sm w-14 shrink-0"
+                  className="h-8 text-sm w-14 shrink-0"
                   type="number"
                   min="1"
                 />
@@ -252,13 +235,13 @@ export function CreateForm() {
                   placeholder="Song title (e.g. यीशु नाम)"
                   value={song.title}
                   onChange={(e) => updateSong(i, 'title', e.target.value)}
-                  className="h-7 text-sm"
+                  className="h-8 text-sm"
                 />
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-7 text-xs shrink-0"
+                  className="h-8 text-xs shrink-0"
                   disabled={(!song.title.trim() && !song.number.trim()) || fetchingSong === i}
                   onClick={() => handleFetchSong(i)}
                 >
@@ -269,7 +252,7 @@ export function CreateForm() {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 shrink-0 text-gray-400 hover:text-red-500"
+                    className="h-8 w-8 shrink-0 text-gray-400 hover:text-red-500"
                     onClick={() => removeSong(i)}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -284,31 +267,11 @@ export function CreateForm() {
                 onChange={(e) => updateSong(i, 'lyricsText', e.target.value)}
                 className="text-sm"
               />
-
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={() => fileInputRefs.current[i]?.click()}
-                >
-                  <ImagePlus className="w-3 h-3 mr-1" /> Upload image
-                </Button>
-                {song.imagePreview && (
-                  <span className="text-xs text-green-600">Image attached ✓</span>
-                )}
-                <input
-                  ref={(el) => { fileInputRefs.current[i] = el }}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => handleSongImage(i, e)}
-                />
-              </div>
             </Card>
           ))}
         </div>
+
+        <hr className="border-gray-100" />
 
         {/* Bible References */}
         <div className="space-y-2">
@@ -417,12 +380,17 @@ export function CreateForm() {
 
       {/* Slide preview */}
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold text-[#1a3a5c]">
-          {slides.length > 0 ? `${slides.length} Slides` : 'Preview'}
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-[#1a3a5c]">
+            {slides.length > 0 ? `${slides.length} Slides` : 'Preview'}
+          </h2>
+          <Button variant="outline" size="sm" onClick={() => setSlides(DEMO_SLIDES)}>
+            Try Demo
+          </Button>
+        </div>
         {slides.length === 0 ? (
           <Card className="h-48 flex items-center justify-center text-muted-foreground text-sm">
-            Slides will appear here after generation
+            Fill in the form and click Generate Slides
           </Card>
         ) : (
           <>
