@@ -45,13 +45,17 @@ export interface SongEntry {
   image?: { base64: string; mediaType: string }
 }
 
+export interface BibleEntry {
+  ref: string
+  text: string
+}
+
 export interface GenerateRequest {
   fellowshipDate: string
   anchorName: string
   sermonLeader: string
   songs: SongEntry[]
-  bibleRef: string
-  bibleText: string
+  bibleRefs: BibleEntry[]
   announcements: string
   prayerPoints: string
 }
