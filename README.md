@@ -1,21 +1,26 @@
-# Kairos
+# Kairos — Fellowship Builder
 
-A church fellowship presentation builder. Fill in your fellowship details — anchor name, sermon leader, song lyrics, Bible verse, announcements, and prayer points — and Claude AI generates a structured, slide-by-slide presentation ready to project fullscreen.
+An AI-powered church presentation builder for Nepali Christian fellowship communities. Fill in your fellowship details — anchor name, sermon leader, song lyrics, Bible references, announcements, and prayer points — and AI generates a complete, slide-by-slide presentation in **Nepali (Devanagari script)**, ready to project fullscreen.
+
+🌐 **Live:** https://kairos-weld.vercel.app
 
 ## Features
 
-- AI-generated slides via Claude (`claude-sonnet-4-6`) using the Vercel AI SDK
+- AI generates all slides in Nepali with name transliteration and Bikram Sambat (BS) date conversion
+- AI-generated warm Nepali Christian welcome message for each fellowship
 - Fullscreen presenter mode with keyboard navigation (arrow keys, Escape)
-- Upload a lyrics image — Claude extracts the text automatically
-- Save and manage presentations (Prisma + Supabase PostgreSQL)
-- Google OAuth sign-in via Supabase Auth
+- Slide format toolbar: font size, bold, underline, colors, padding, vertical & horizontal text alignment
+- Save and manage presentations in a personal library
+- Public shareable links — share slides with your congregation (no login required to view)
+- Print / export slides to PDF
+- Demo mode with a pre-filled sample Nepali presentation
+- Google OAuth sign-in
 
 ## Stack
 
 - **Next.js 16** (App Router) + TypeScript
-- **Vercel AI SDK** + `@ai-sdk/anthropic`
-- **Prisma 6** ORM → Supabase PostgreSQL
-- **Supabase Auth** (Google OAuth only)
+- **Vercel AI SDK** + `@ai-sdk/google` (Gemini 2.5 Flash Lite)
+- **Supabase** — PostgreSQL database + Google OAuth auth (no Prisma, schema managed via Supabase SQL Editor)
 - **Zustand** for slide/presenter state
 - **Tailwind CSS v4** + shadcn/ui
 
@@ -26,20 +31,46 @@ A church fellowship presentation builder. Fill in your fellowship details — an
    npm install
    ```
 
-2. Copy `.env` and fill in your values:
+2. Create a `.env` file with your values:
    ```env
-   ANTHROPIC_API_KEY=sk-ant-...
    NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-   DATABASE_URL=postgresql://...
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=eyJ...
+   GOOGLE_GENERATIVE_AI_API_KEY=AIza...
+   LYRICS_SUPABASE_URL=https://yyy.supabase.co
+   LYRICS_SUPABASE_ANON_KEY=eyJ...
    ```
 
-3. Run Prisma migration:
-   ```bash
-   npx prisma migrate dev --name init
+3. Create the `presentations` table in Supabase SQL Editor:
+   ```sql
+   CREATE TABLE presentations (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     user_id UUID REFERENCES auth.users NOT NULL,
+     title TEXT NOT NULL,
+     date TEXT NOT NULL,
+     slides JSONB NOT NULL,
+     created_at TIMESTAMPTZ DEFAULT now()
+   );
+
+   ALTER TABLE presentations ENABLE ROW LEVEL SECURITY;
+
+   CREATE POLICY "users manage own presentations"
+   ON presentations FOR ALL
+   USING (auth.uid() = user_id);
+
+   CREATE POLICY "public read presentations"
+   ON presentations FOR SELECT
+   USING (true);
    ```
 
 4. Start dev server:
    ```bash
    npm run dev
    ```
+
+## Deployment
+
+Deployed on Vercel. Add all environment variables in Vercel → Project → Settings → Environment Variables.
+
+In Supabase → Authentication → URL Configuration, set:
+- **Site URL**: `https://your-vercel-domain.vercel.app`
+- **Redirect URLs**: `https://your-vercel-domain.vercel.app/**`
