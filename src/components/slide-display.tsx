@@ -33,10 +33,15 @@ export function SlideDisplay({ slide }: SlideDisplayProps) {
   const contentWeight = fmt.contentBold ? 'bold' : 'normal'
   const contentDecoration = fmt.contentUnderline ? 'underline' : 'none'
 
+  const justifyMap = { top: 'flex-start', center: 'center', bottom: 'flex-end' } as const
+  const justifyContent = justifyMap[fmt.verticalAlign ?? 'center']
+  const textAlign = fmt.textAlign ?? 'center'
+
   return (
     <div
-      className="w-full h-full flex flex-col justify-center relative"
+      className="w-full h-full flex flex-col relative"
       style={{
+        justifyContent,
         backgroundColor: bg,
         borderTop: `10px solid ${borderColor}`,
         paddingLeft: pad,
@@ -50,37 +55,39 @@ export function SlideDisplay({ slide }: SlideDisplayProps) {
       </span>
 
       <h1
-        className="mb-6 leading-tight text-center"
+        className="mb-6 leading-tight"
         style={{
           fontSize: titleSize,
           color: titleColor,
           fontWeight: titleWeight,
           textDecoration: titleDecoration,
+          textAlign,
         }}
       >
         {slide.title}
       </h1>
 
       {slide.type === 'lyrics' && slide.subtitle && (
-        <p className="text-sm font-semibold uppercase tracking-widest text-gray-400 mb-3 text-center">
+        <p className="text-sm font-semibold uppercase tracking-widest text-gray-400 mb-3" style={{ textAlign }}>
           {slide.subtitle}
         </p>
       )}
 
       <p
-        className="whitespace-pre-wrap leading-relaxed text-center"
+        className="whitespace-pre-wrap leading-relaxed"
         style={{
           fontSize: contentSize,
           color: contentColor,
           fontWeight: contentWeight,
           textDecoration: contentDecoration,
+          textAlign,
         }}
       >
         {slide.content}
       </p>
 
       {slide.type !== 'lyrics' && slide.subtitle && (
-        <p className="text-2xl text-gray-400 mt-4 text-center">{slide.subtitle}</p>
+        <p className="text-2xl text-gray-400 mt-4" style={{ textAlign }}>{slide.subtitle}</p>
       )}
 
       <span className="absolute bottom-6 right-8 text-3xl text-gray-200 select-none">

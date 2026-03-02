@@ -4,6 +4,15 @@ import { useState } from 'react'
 import { usePresentationStore } from '@/store/presentation-store'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import {
+  AlignVerticalJustifyStart,
+  AlignVerticalJustifyCenter,
+  AlignVerticalJustifyEnd,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+} from 'lucide-react'
 import type { SlideFormat } from '@/lib/types'
 
 function SizeControl({
@@ -143,8 +152,43 @@ export function SlideFormatToolbar() {
 
       {/* Padding */}
       <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-400 w-10">Margin</span>
+        <span className="text-xs text-gray-400 w-10">Padding</span>
         <SizeControl value={fmt.padding} defaultValue={48} onChange={(v) => update({ padding: v })} />
+      </div>
+
+      <Separator />
+
+      {/* Vertical alignment */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-gray-400 w-10">V Align</span>
+        <ToggleButton active={(fmt.verticalAlign ?? 'center') === 'top'} onClick={() => update({ verticalAlign: 'top' })}>
+          <AlignVerticalJustifyStart className="w-3 h-3" />
+        </ToggleButton>
+        <ToggleButton active={(fmt.verticalAlign ?? 'center') === 'center'} onClick={() => update({ verticalAlign: 'center' })}>
+          <AlignVerticalJustifyCenter className="w-3 h-3" />
+        </ToggleButton>
+        <ToggleButton active={(fmt.verticalAlign ?? 'center') === 'bottom'} onClick={() => update({ verticalAlign: 'bottom' })}>
+          <AlignVerticalJustifyEnd className="w-3 h-3" />
+        </ToggleButton>
+      </div>
+
+      <Separator />
+
+      {/* Horizontal text alignment */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-gray-400 w-10">Text</span>
+        <ToggleButton active={(fmt.textAlign ?? 'center') === 'left'} onClick={() => update({ textAlign: 'left' })}>
+          <AlignLeft className="w-3 h-3" />
+        </ToggleButton>
+        <ToggleButton active={(fmt.textAlign ?? 'center') === 'center'} onClick={() => update({ textAlign: 'center' })}>
+          <AlignCenter className="w-3 h-3" />
+        </ToggleButton>
+        <ToggleButton active={(fmt.textAlign ?? 'center') === 'right'} onClick={() => update({ textAlign: 'right' })}>
+          <AlignRight className="w-3 h-3" />
+        </ToggleButton>
+        <ToggleButton active={fmt.textAlign === 'justify'} onClick={() => update({ textAlign: 'justify' })}>
+          <AlignJustify className="w-3 h-3" />
+        </ToggleButton>
       </div>
     </div>
   )

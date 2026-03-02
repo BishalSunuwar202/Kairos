@@ -19,6 +19,8 @@ export interface SlideFormat {
   contentUnderline?: boolean
   contentColor?: string
   padding?: number
+  verticalAlign?: 'top' | 'center' | 'bottom'
+  textAlign?: 'left' | 'center' | 'right' | 'justify'
 }
 
 export interface Slide {
@@ -42,7 +44,6 @@ export interface Presentation {
 export interface SongEntry {
   title: string
   lyricsText: string
-  image?: { base64: string; mediaType: string }
 }
 
 export interface BibleEntry {
