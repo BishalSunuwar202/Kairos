@@ -8,18 +8,10 @@ import { Badge } from '@/components/ui/badge'
 import { Link2, Play, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import type { Slide } from '@/lib/types'
-
-interface LibraryPresentation {
-  id: string
-  title: string
-  date: string
-  slides: Slide[]
-  createdAt: Date
-}
+import type { Presentation, Slide } from '@/lib/types'
 
 interface LibraryViewProps {
-  presentations: LibraryPresentation[]
+  presentations: Presentation[]
 }
 
 export function LibraryView({ presentations }: LibraryViewProps) {
