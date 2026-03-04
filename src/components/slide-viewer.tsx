@@ -1,18 +1,20 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePresentationStore } from '@/store/presentation-store'
 import { SlideDisplay } from './slide-display'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, FileDown, FileText, Maximize2, Minimize2, RotateCcw, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, FileDown, FileText, Maximize2, Minimize2, Plus, RotateCcw, X } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { QuickAddModal } from './quick-add-modal'
 
 export function SlideViewer() {
   const { slides, currentSlide, isPresenting, setIsPresenting, nextSlide, prevSlide, setCurrentSlide } =
     usePresentationStore()
   const containerRef = useRef<HTMLDivElement>(null)
   const isFullscreen = typeof document !== 'undefined' && !!document.fullscreenElement
+  const [showAddModal, setShowAddModal] = useState(false)
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -48,6 +50,12 @@ export function SlideViewer() {
           </div>
         ))}
       </div>
+
+      <QuickAddModal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        afterIndex={currentSlide}
+      />
 
       <div
         ref={containerRef}
@@ -97,6 +105,9 @@ export function SlideViewer() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setShowAddModal(true)} title="Add slide">
+              <Plus className="w-4 h-4 mr-1" /> Add
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" title="Export">
