@@ -49,5 +49,5 @@ An AI-powered church presentation builder for Nepali Christian fellowship commun
 
 Deployed on Vercel. Add all environment variables in Vercel → Project → Settings → Environment Variables.
 
-
+In Supabase → Authentication → URL Configuration, set:
 - **Site URL**: `https://kairos-weld.vercel.app/`
