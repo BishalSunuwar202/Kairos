@@ -5,7 +5,8 @@ import { usePresentationStore } from '@/store/presentation-store'
 import { SlideDisplay } from './slide-display'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, FileDown, Maximize2, Minimize2, Printer, RotateCcw, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, FileDown, FileText, Maximize2, Minimize2, RotateCcw, X } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 export function SlideViewer() {
   const { slides, currentSlide, isPresenting, setIsPresenting, nextSlide, prevSlide, setCurrentSlide } =
@@ -96,20 +97,24 @@ export function SlideViewer() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => window.print()} title="Print all slides">
-              <Printer className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={async () => {
-                const { exportToPptx } = await import('@/lib/export-pptx')
-                await exportToPptx(slides)
-              }}
-              title="Download as PowerPoint"
-            >
-              <FileDown className="w-4 h-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" title="Export">
+                  <FileDown className="w-4 h-4 mr-1" /> Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => window.print()}>
+                  <FileText className="w-4 h-4 mr-2" /> Export as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={async () => {
+                  const { exportToPptx } = await import('@/lib/export-pptx')
+                  await exportToPptx(slides)
+                }}>
+                  <FileDown className="w-4 h-4 mr-2" /> Export as PowerPoint
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button variant="ghost" size="sm" onClick={toggleFullscreen}>
               {isFullscreen ? (
                 <Minimize2 className="w-4 h-4" />
