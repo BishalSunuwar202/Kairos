@@ -61,8 +61,30 @@ export function SlideViewer() {
         ref={containerRef}
         className="fixed inset-0 z-50 bg-white flex flex-col"
       >
-        <div className="flex-1 overflow-hidden">
-          <SlideDisplay slide={slide} />
+        <div className="flex-1 overflow-hidden flex">
+          {/* Current slide */}
+          <div className="flex-1 overflow-hidden">
+            <SlideDisplay slide={slide} />
+          </div>
+
+          {/* Next slide panel */}
+          <div className="w-72 bg-gray-900 flex flex-col gap-3 p-4 shrink-0">
+            <p className="text-xs uppercase tracking-widest text-gray-400 font-medium">Next</p>
+            {slides[currentSlide + 1] ? (
+              <>
+                <div className="aspect-video w-full overflow-hidden rounded border border-gray-700">
+                  <SlideDisplay slide={slides[currentSlide + 1]} />
+                </div>
+                <p className="text-xs text-gray-500 text-center">
+                  {currentSlide + 2} / {slides.length}
+                </p>
+              </>
+            ) : (
+              <div className="aspect-video w-full flex items-center justify-center rounded border border-gray-700 bg-gray-800">
+                <p className="text-xs text-gray-500 text-center px-2">End of presentation</p>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center justify-between px-6 py-3 border-t bg-white">
