@@ -5,6 +5,7 @@ interface PresentationStore {
   slides: Slide[]
   setSlides: (slides: Slide[]) => void
   updateSlide: (index: number, updates: Partial<Slide>) => void
+  insertSlide: (afterIndex: number, slide: Omit<Slide, 'id'>) => void
   applyFormatToAll: (patch: Partial<SlideFormat>) => void
 
   isPresenting: boolean
@@ -23,6 +24,12 @@ export const usePresentationStore = create<PresentationStore>((set, get) => ({
     const slides = [...get().slides]
     slides[index] = { ...slides[index], ...updates }
     set({ slides })
+  },
+  insertSlide: (afterIndex, slide) => {
+    const slides = [...get().slides]
+    const newSlide = { ...slide, id: Date.now() }
+    slides.splice(afterIndex + 1, 0, newSlide)
+    set({ slides, currentSlide: afterIndex + 1 })
   },
   applyFormatToAll: (patch) => {
     const slides = get().slides.map((s) => ({
