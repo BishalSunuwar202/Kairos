@@ -68,20 +68,20 @@ export function SlideViewer() {
           </div>
 
           {/* Next slide panel */}
-          <div className="w-72 bg-gray-900 flex flex-col gap-3 p-4 shrink-0">
-            <p className="text-xs uppercase tracking-widest text-gray-400 font-medium">Next</p>
+          <div className="w-64 bg-gray-950 flex flex-col gap-3 p-4 shrink-0 border-l border-gray-800">
+            <p className="text-xs uppercase tracking-widest text-gray-500 font-semibold">Up Next</p>
             {slides[currentSlide + 1] ? (
               <>
-                <div className="aspect-video w-full overflow-hidden rounded border border-gray-700">
+                <div className="aspect-video w-full overflow-hidden rounded-lg shadow-lg ring-1 ring-white/10">
                   <SlideDisplay slide={slides[currentSlide + 1]} />
                 </div>
-                <p className="text-xs text-gray-500 text-center">
+                <p className="text-xs text-gray-600 text-center tabular-nums">
                   {currentSlide + 2} / {slides.length}
                 </p>
               </>
             ) : (
-              <div className="aspect-video w-full flex items-center justify-center rounded border border-gray-700 bg-gray-800">
-                <p className="text-xs text-gray-500 text-center px-2">End of presentation</p>
+              <div className="aspect-video w-full flex items-center justify-center rounded-lg ring-1 ring-white/10 bg-gray-900">
+                <p className="text-xs text-gray-600 text-center px-3">End of presentation</p>
               </div>
             )}
           </div>
