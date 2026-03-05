@@ -25,8 +25,10 @@ export function SlideMini({ slide, index, isActive, onClick }: SlideMiniProps) {
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left rounded-lg border p-3 transition-all ${
-        isActive ? 'ring-2 ring-[#1a3a5c] bg-[#1a3a5c]/5' : 'hover:border-gray-300'
+      className={`w-full text-left rounded-lg border p-3 transition-all cursor-pointer ${
+        isActive
+          ? 'ring-2 ring-[#1a3a5c] bg-[#1a3a5c]/5'
+          : 'hover:border-gray-400 hover:bg-gray-100 hover:shadow-md hover:scale-[1.02]'
       }`}
       style={{ borderTop: `4px solid ${borderColor}` }}
     >
