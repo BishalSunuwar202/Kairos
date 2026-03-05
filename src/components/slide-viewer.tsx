@@ -13,8 +13,8 @@ export function SlideViewer() {
   const { slides, currentSlide, isPresenting, setIsPresenting, nextSlide, prevSlide, setCurrentSlide } =
     usePresentationStore()
   const containerRef = useRef<HTMLDivElement>(null)
-  const isFullscreen = typeof document !== 'undefined' && !!document.fullscreenElement
   const [showAddModal, setShowAddModal] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -24,8 +24,16 @@ export function SlideViewer() {
       if (e.key === 'Escape') setIsPresenting(false)
     }
 
+    function handleFullscreenChange() {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+    }
   }, [isPresenting, nextSlide, prevSlide, setIsPresenting])
 
   function toggleFullscreen() {
@@ -67,8 +75,8 @@ export function SlideViewer() {
             <SlideDisplay slide={slide} />
           </div>
 
-          {/* Next slide panel */}
-          <div className="w-64 bg-gray-950 flex flex-col gap-3 p-4 shrink-0 border-l border-gray-800">
+          {/* Next slide panel — hidden in fullscreen so projector only sees current slide */}
+          <div className={`w-96 bg-gray-950 flex flex-col gap-4 p-5 shrink-0 border-l border-gray-800 ${isFullscreen ? 'hidden' : ''}`}>
             <p className="text-xs uppercase tracking-widest text-gray-500 font-semibold">Up Next</p>
             {slides[currentSlide + 1] ? (
               <>
