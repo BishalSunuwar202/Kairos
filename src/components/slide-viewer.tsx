@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { usePresentationStore } from '@/store/presentation-store'
 import { SlideDisplay } from './slide-display'
+import { SlideMini } from './slide-mini'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, FileDown, FileText, Maximize2, Minimize2, Plus, RotateCcw, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, FileDown, FileText, LayoutPanelLeft, Maximize2, Minimize2, Plus, RotateCcw, X } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { QuickAddModal } from './quick-add-modal'
 
@@ -15,6 +16,8 @@ export function SlideViewer() {
   const containerRef = useRef<HTMLDivElement>(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showNextPanel, setShowNextPanel] = useState(true)
+  const [showSlideGrid, setShowSlideGrid] = useState(false)
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -69,15 +72,45 @@ export function SlideViewer() {
         ref={containerRef}
         className="fixed inset-0 z-50 bg-white flex flex-col"
       >
+        {/* All slides grid overlay */}
+        {showSlideGrid && (
+          <div className="absolute inset-0 z-10 bg-gray-950/95 flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+              <p className="text-sm font-semibold text-white">All Slides ({slides.length})</p>
+              <button onClick={() => setShowSlideGrid(false)} className="text-gray-400 hover:text-white transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="grid grid-cols-3 gap-3 max-w-2xl mx-auto">
+                {slides.map((s, i) => (
+                  <SlideMini
+                    key={s.id}
+                    slide={s}
+                    index={i}
+                    isActive={i === currentSlide}
+                    onClick={() => { setCurrentSlide(i); setShowSlideGrid(false) }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex-1 overflow-hidden flex">
           {/* Current slide */}
           <div className="flex-1 overflow-hidden">
             <SlideDisplay slide={slide} />
           </div>
 
-          {/* Next slide panel — hidden in fullscreen so projector only sees current slide */}
-          <div className={`w-96 bg-gray-950 flex flex-col gap-4 p-5 shrink-0 border-l border-gray-800 ${isFullscreen ? 'hidden' : ''}`}>
-            <p className="text-xs uppercase tracking-widest text-gray-500 font-semibold">Up Next</p>
+          {/* Next slide panel — hidden in fullscreen or when toggled off */}
+          <div className={`w-96 bg-gray-950 flex flex-col gap-4 p-5 shrink-0 border-l border-gray-800 ${isFullscreen || !showNextPanel ? 'hidden' : ''}`}>
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-widest text-gray-500 font-semibold">Up Next</p>
+              <button onClick={() => setShowNextPanel(false)} className="text-gray-600 hover:text-gray-400 transition-colors" title="Close panel">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
             {slides[currentSlide + 1] ? (
               <>
                 <div className="aspect-video w-full overflow-hidden rounded-lg shadow-lg ring-1 ring-white/10">
@@ -135,6 +168,19 @@ export function SlideViewer() {
           </div>
 
           <div className="flex items-center gap-2">
+            {!isFullscreen && (
+              <Button
+                variant={showNextPanel ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setShowNextPanel((v) => !v)}
+                title={showNextPanel ? 'Hide next slide panel' : 'Show next slide panel'}
+              >
+                <LayoutPanelLeft className="w-4 h-4" />
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={() => setShowSlideGrid(true)} title="See all slides">
+              All Slides
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => setShowAddModal(true)} title="Add slide">
               <Plus className="w-4 h-4 mr-1" /> Add
             </Button>
