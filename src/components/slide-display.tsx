@@ -14,9 +14,10 @@ const TYPE_LABELS: Record<SlideType, string> = {
 
 interface SlideDisplayProps {
   slide: Slide
+  logoUrl?: string | null
 }
 
-export function SlideDisplay({ slide }: SlideDisplayProps) {
+export function SlideDisplay({ slide, logoUrl }: SlideDisplayProps) {
   const borderColor = SLIDE_COLORS[slide.type]
   const fmt = slide.format ?? {}
 
@@ -90,9 +91,12 @@ export function SlideDisplay({ slide }: SlideDisplayProps) {
         <p className="text-2xl text-gray-400 mt-4" style={{ textAlign }}>{slide.subtitle}</p>
       )}
 
-      <span className="absolute bottom-6 right-8 text-3xl text-gray-200 select-none">
-        ✝
-      </span>
+      <div className="absolute bottom-4 right-6">
+        {logoUrl
+          ? <img src={logoUrl} alt="Church logo" className="h-10 w-auto object-contain opacity-80" />
+          : <span className="text-3xl text-gray-200 select-none">✝</span>
+        }
+      </div>
     </div>
   )
 }
