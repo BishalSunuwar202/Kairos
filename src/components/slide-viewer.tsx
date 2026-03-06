@@ -18,6 +18,11 @@ export function SlideViewer() {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showNextPanel, setShowNextPanel] = useState(true)
   const [showSlideGrid, setShowSlideGrid] = useState(false)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    setLogoUrl(localStorage.getItem('kairos_church_logo'))
+  }, [])
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -57,7 +62,7 @@ export function SlideViewer() {
       <div className="print-slides hidden">
         {slides.map((s) => (
           <div key={s.id} className="print-slide">
-            <SlideDisplay slide={s} />
+            <SlideDisplay slide={s} logoUrl={logoUrl} />
           </div>
         ))}
       </div>
@@ -100,7 +105,7 @@ export function SlideViewer() {
         <div className="flex-1 overflow-hidden flex">
           {/* Current slide */}
           <div className="flex-1 overflow-hidden">
-            <SlideDisplay slide={slide} />
+            <SlideDisplay slide={slide} logoUrl={logoUrl} />
           </div>
 
           {/* Next slide panel — hidden in fullscreen or when toggled off */}
@@ -114,7 +119,7 @@ export function SlideViewer() {
             {slides[currentSlide + 1] ? (
               <>
                 <div className="aspect-video w-full overflow-hidden rounded-lg shadow-lg ring-1 ring-white/10">
-                  <SlideDisplay slide={slides[currentSlide + 1]} />
+                  <SlideDisplay slide={slides[currentSlide + 1]} logoUrl={logoUrl} />
                 </div>
                 <p className="text-xs text-gray-600 text-center tabular-nums">
                   {currentSlide + 2} / {slides.length}
