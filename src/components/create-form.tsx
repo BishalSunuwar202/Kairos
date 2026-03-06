@@ -12,9 +12,20 @@ import { usePresentationStore } from '@/store/presentation-store'
 import { savePresentation } from '@/actions/presentation-actions'
 import { lookupBible, lookupSong } from '@/actions/lookup-actions'
 import { toast } from 'sonner'
-import { ImageIcon, Loader2, Play, Plus, Save, Trash2, X } from 'lucide-react'
+import { Check, ImageIcon, Loader2, Play, Plus, Save, Trash2, X } from 'lucide-react'
 import type { BibleEntry, GenerateRequest, Slide, SongEntry } from '@/lib/types'
 import { DEMO_SLIDES } from '@/lib/demo-slides'
+
+const CREED_SLIDE_ID = -999
+
+const CREED_SLIDE: Slide = {
+  id: CREED_SLIDE_ID,
+  type: 'bible',
+  title: 'विश्वासको सार',
+  content: `म विश्वास गर्दछु एक परमेश्वर सर्वशक्तिमान् पिता, स्वर्ग र पृथ्वी सृष्टि गर्नुहुनेमाथि ।
+अनि उहाँका एकले पुत्र, हाम्रा प्रभु येशू ख्रीष्टमाथि, जो पवित्र आत्माको शक्तिद्वारा गर्भ धारण हुनुभयो, कन्ये मरियमदेखि जन्मनुभयो, जसले पन्तियस पिलातसको अधीनमा दुःख भोग्नुभयो, जो क्रूसमा टाँगिनुभयो, मर्नुभयो अनि गाडिनुभयो, तेस्रो दिनमा मरेकाहरुबाट बिउतानुभयो, स्वर्गमा चढिजानुभयो, अनि सर्वशक्तिमान् परमेश्वर पिताको दाहिने हातपट्टि बस्नुभएको छ; जहाँदेखि उहाँ जिउँदा र मरेकाहरूको न्याय गर्नलाई फेरि आउनुहुनेछ।
+म विश्वास गर्दछु पवित्र आत्मामाथि; पवित्र मण्डलीमाथि; पवित्रहरूको सङ्गतिमाथि; पाप मोचनमाथि; शरीरको पुनरुत्थानमाथी; र अजम्मरी जीवनमाथि। आमिन्।`,
+}
 
 interface SongState {
   number: string
@@ -43,6 +54,7 @@ export function CreateForm() {
   const [isSaving, setIsSaving] = useState(false)
   const [fetchingBible, setFetchingBible] = useState<number | null>(null)
   const [fetchingSong, setFetchingSong] = useState<number | null>(null)
+  const [includeCreed, setIncludeCreed] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const logoInputRef = useRef<HTMLInputElement>(null)
 
@@ -66,6 +78,15 @@ export function CreateForm() {
     localStorage.removeItem('kairos_church_logo')
     setLogoUrl(null)
     if (logoInputRef.current) logoInputRef.current.value = ''
+  }
+
+  function toggleCreed() {
+    if (!includeCreed) {
+      setSlides([...slides, CREED_SLIDE])
+    } else {
+      setSlides(slides.filter(s => s.id !== CREED_SLIDE_ID))
+    }
+    setIncludeCreed(v => !v)
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
@@ -161,8 +182,9 @@ export function CreateForm() {
       if (!res.ok) throw new Error('Generation failed')
 
       const { slides: parsedSlides } = await res.json() as { slides: Slide[] }
-      setSlides(parsedSlides)
-      toast.success(`Generated ${parsedSlides.length} slides`)
+      const finalSlides = includeCreed ? [...parsedSlides, CREED_SLIDE] : parsedSlides
+      setSlides(finalSlides)
+      toast.success(`Generated ${finalSlides.length} slides`)
     } catch {
       toast.error('Failed to generate slides. Please try again.')
     } finally {
@@ -323,6 +345,25 @@ export function CreateForm() {
               />
             </Card>
           ))}
+        </div>
+
+        {/* Apostles' Creed toggle */}
+        <div
+          role="button"
+          onClick={toggleCreed}
+          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all select-none ${
+            includeCreed ? 'border-[#1a3a5c] bg-[#1a3a5c]/5 ring-1 ring-[#1a3a5c]' : 'hover:border-gray-300'
+          }`}
+        >
+          <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${
+            includeCreed ? 'bg-[#1a3a5c] border-[#1a3a5c]' : 'border-gray-400'
+          }`}>
+            {includeCreed && <Check className="w-3 h-3 text-white" />}
+          </div>
+          <div>
+            <p className="text-sm font-medium text-[#1a3a5c]">विश्वासको सार</p>
+            <p className="text-xs text-gray-400">Apostles&apos; Creed — adds a slide when selected</p>
+          </div>
         </div>
 
         <hr className="border-gray-100" />
