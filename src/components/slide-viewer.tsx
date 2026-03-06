@@ -22,7 +22,7 @@ export function SlideViewer() {
 
   useEffect(() => {
     setLogoUrl(localStorage.getItem('kairos_church_logo'))
-  }, [])
+  }, [isPresenting])
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
