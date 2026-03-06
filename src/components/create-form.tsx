@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -12,7 +12,7 @@ import { usePresentationStore } from '@/store/presentation-store'
 import { savePresentation } from '@/actions/presentation-actions'
 import { lookupBible, lookupSong } from '@/actions/lookup-actions'
 import { toast } from 'sonner'
-import { Loader2, Play, Plus, Save, Trash2 } from 'lucide-react'
+import { ImageIcon, Loader2, Play, Plus, Save, Trash2, X } from 'lucide-react'
 import type { BibleEntry, GenerateRequest, Slide, SongEntry } from '@/lib/types'
 import { DEMO_SLIDES } from '@/lib/demo-slides'
 
@@ -43,6 +43,30 @@ export function CreateForm() {
   const [isSaving, setIsSaving] = useState(false)
   const [fetchingBible, setFetchingBible] = useState<number | null>(null)
   const [fetchingSong, setFetchingSong] = useState<number | null>(null)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const logoInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    setLogoUrl(localStorage.getItem('kairos_church_logo'))
+  }, [])
+
+  function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const dataUrl = reader.result as string
+      localStorage.setItem('kairos_church_logo', dataUrl)
+      setLogoUrl(dataUrl)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  function removeLogo() {
+    localStorage.removeItem('kairos_church_logo')
+    setLogoUrl(null)
+    if (logoInputRef.current) logoInputRef.current.value = ''
+  }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -174,6 +198,36 @@ export function CreateForm() {
         <div>
           <h1 className="text-2xl font-bold text-[#1a3a5c]">New Presentation</h1>
           <p className="text-sm text-gray-500 mt-0.5">Fill in the details below to generate slides</p>
+        </div>
+
+        {/* Church Logo */}
+        <div className="flex items-center gap-3 p-3 rounded-lg border bg-gray-50">
+          {logoUrl ? (
+            <img src={logoUrl} alt="Church logo" className="h-12 w-12 object-contain rounded" />
+          ) : (
+            <div className="h-12 w-12 rounded border-2 border-dashed border-gray-300 flex items-center justify-center bg-white">
+              <ImageIcon className="w-5 h-5 text-gray-400" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-700">Church Logo</p>
+            <p className="text-xs text-gray-400">Shown in bottom-right of every slide</p>
+          </div>
+          <input
+            ref={logoInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleLogoUpload}
+          />
+          <Button type="button" variant="outline" size="sm" onClick={() => logoInputRef.current?.click()}>
+            {logoUrl ? 'Change' : 'Upload'}
+          </Button>
+          {logoUrl && (
+            <Button type="button" variant="ghost" size="sm" onClick={removeLogo} className="text-gray-400 hover:text-red-500 px-2">
+              <X className="w-4 h-4" />
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
