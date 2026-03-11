@@ -38,7 +38,16 @@ export async function savePresentation(data: {
 
 export async function deletePresentation(id: string) {
   const supabase = await createClient()
-  const { error } = await supabase.from('presentations').delete().eq('id', id)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { error } = await supabase
+    .from('presentations')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id)
 
   if (error) throw new Error(error.message)
   revalidatePath('/library')

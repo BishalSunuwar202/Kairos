@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { deletePresentation } from '@/actions/presentation-actions'
 import { usePresentationStore } from '@/store/presentation-store'
 import { Button } from '@/components/ui/button'
@@ -17,13 +18,24 @@ interface LibraryViewProps {
 export function LibraryView({ presentations }: LibraryViewProps) {
   const { setSlides, setIsPresenting } = usePresentationStore()
   const router = useRouter()
+  const [items, setItems] = useState(presentations)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  useEffect(() => {
+    setItems(presentations)
+  }, [presentations])
 
   async function handleDelete(id: string) {
     try {
+      setDeletingId(id)
       await deletePresentation(id)
+      setItems((prev) => prev.filter((presentation) => presentation.id !== id))
+      router.refresh()
       toast.success('Deleted')
     } catch {
       toast.error('Failed to delete')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -32,7 +44,7 @@ export function LibraryView({ presentations }: LibraryViewProps) {
     router.push('/')
   }
 
-  if (presentations.length === 0) {
+  if (items.length === 0) {
     return (
       <div className="text-center py-20 text-muted-foreground">
         <p className="text-4xl mb-3">✝</p>
@@ -44,7 +56,7 @@ export function LibraryView({ presentations }: LibraryViewProps) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {presentations.map((p) => (
+      {items.map((p) => (
         <Card key={p.id}>
           <CardHeader>
             <CardTitle className="text-base text-[#1a3a5c] line-clamp-2">{p.title}</CardTitle>
@@ -88,6 +100,7 @@ export function LibraryView({ presentations }: LibraryViewProps) {
               size="sm"
               variant="ghost"
               className="text-destructive hover:text-destructive"
+              disabled={deletingId === p.id}
               onClick={() => handleDelete(p.id)}
             >
               <Trash2 className="w-4 h-4" />
