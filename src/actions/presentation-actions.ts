@@ -6,9 +6,15 @@ import type { Slide, Presentation } from '@/lib/types'
 
 export async function listPresentations(): Promise<Presentation[]> {
   const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
   const { data, error } = await supabase
     .from('presentations')
     .select('*')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
   if (error) throw new Error(error.message)
@@ -43,13 +49,17 @@ export async function deletePresentation(id: string) {
   } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('presentations')
     .delete()
+    .select('id')
     .eq('id', id)
     .eq('user_id', user.id)
 
   if (error) throw new Error(error.message)
+  if (!data || data.length === 0) {
+    throw new Error('Presentation was not deleted')
+  }
   revalidatePath('/library')
 }
 
