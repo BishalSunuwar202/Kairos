@@ -10,7 +10,7 @@ import { SlideMini } from './slide-mini'
 import { SlideFormatToolbar } from './slide-format-toolbar'
 import { usePresentationStore } from '@/store/presentation-store'
 import { savePresentation } from '@/actions/presentation-actions'
-import { lookupBible, lookupSong } from '@/actions/lookup-actions'
+import { lookupBible, lookupBibleRange, lookupSong } from '@/actions/lookup-actions'
 import { toast } from 'sonner'
 import { Check, ImageIcon, Loader2, Play, Plus, Save, Trash2, X } from 'lucide-react'
 import type { BibleEntry, GenerateRequest, Slide, SongEntry } from '@/lib/types'
@@ -44,6 +44,9 @@ export function CreateForm() {
   const [form, setForm] = useState({
     fellowshipDate: '',
     anchorName: '',
+    bibleReaderName: '',
+    bibleReaderVerse: '',
+    bibleReaderText: '',
     sermonLeader: '',
     announcements: '',
     prayerPoints: '',
@@ -53,6 +56,7 @@ export function CreateForm() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [fetchingBible, setFetchingBible] = useState<number | null>(null)
+  const [fetchingBibleReaderVerse, setFetchingBibleReaderVerse] = useState(false)
   const [fetchingSong, setFetchingSong] = useState<number | null>(null)
   const [includeCreed, setIncludeCreed] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
@@ -131,6 +135,24 @@ export function CreateForm() {
       }
     } finally {
       setFetchingBible(null)
+    }
+  }
+
+  async function handleFetchBibleReaderVerse() {
+    const ref = form.bibleReaderVerse.trim()
+    if (!ref) return
+
+    setFetchingBibleReaderVerse(true)
+    try {
+      const result = await lookupBibleRange(ref)
+      if ('error' in result) {
+        toast.error(result.error)
+      } else {
+        setForm((prev) => ({ ...prev, bibleReaderText: result.text }))
+        toast.success('Bible reader passage fetched')
+      }
+    } finally {
+      setFetchingBibleReaderVerse(false)
     }
   }
 
@@ -275,14 +297,58 @@ export function CreateForm() {
           </div>
         </div>
 
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <Label htmlFor="bibleReaderName">Bible Reader</Label>
+            <Input
+              id="bibleReaderName"
+              name="bibleReaderName"
+              placeholder="e.g. John Doe"
+              value={form.bibleReaderName}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="sermonLeader">Sermon Leader</Label>
+            <Input
+              id="sermonLeader"
+              name="sermonLeader"
+              placeholder="e.g. Pastor Jane"
+              value={form.sermonLeader}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+
         <div className="space-y-1">
-          <Label htmlFor="sermonLeader">Sermon Leader</Label>
-          <Input
-            id="sermonLeader"
-            name="sermonLeader"
-            placeholder="e.g. Pastor Jane"
-            value={form.sermonLeader}
+          <Label htmlFor="bibleReaderVerse">Bible Reader Verse</Label>
+          <div className="flex gap-2">
+            <Input
+              id="bibleReaderVerse"
+              name="bibleReaderVerse"
+              placeholder="e.g. John 3:1-10"
+              value={form.bibleReaderVerse}
+              onChange={handleChange}
+              className="text-sm"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0"
+              disabled={!form.bibleReaderVerse.trim() || fetchingBibleReaderVerse}
+              onClick={handleFetchBibleReaderVerse}
+            >
+              {fetchingBibleReaderVerse ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Fetch'}
+            </Button>
+          </div>
+          <Textarea
+            name="bibleReaderText"
+            placeholder="Fetched Bible reader passage will appear here"
+            rows={5}
+            value={form.bibleReaderText}
             onChange={handleChange}
+            className="text-sm"
           />
         </div>
 

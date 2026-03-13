@@ -13,6 +13,9 @@ export async function POST(req: Request) {
   const userMessage = JSON.stringify({
     fellowshipDate: body.fellowshipDate,
     anchorName: body.anchorName,
+    bibleReaderName: body.bibleReaderName,
+    bibleReaderVerse: body.bibleReaderVerse,
+    bibleReaderText: body.bibleReaderText,
     sermonLeader: body.sermonLeader,
     songs: body.songs.map((s, i) => ({
       songNumber: i + 1,
@@ -29,15 +32,15 @@ export async function POST(req: Request) {
     system: `You are a church fellowship presentation builder for a Nepali church community.
 Return ONLY a valid JSON array of slide objects. No markdown, no code fences, no explanation.
 Each object must have: { "id": number, "type": string, "title": string, "content": string, "subtitle"?: string }
-Valid types: welcome, host, opening-prayer, lyrics, bible, sermon, announcements, closing-prayer
+Valid types: welcome, host, opening-prayer, lyrics, sermon, bible-reader, bible, announcements, closing-prayer
 
 Language rules (strictly enforced):
 - All slide text (title, content, subtitle) must be in Nepali (Devanagari script).
-- People's names (anchorName, sermonLeader): transliterate into Devanagari (e.g. "Bishal Sunuwar" → "बिशाल सुनुवार").
+- People's names (anchorName, bibleReaderName, sermonLeader): transliterate into Devanagari (e.g. "Bishal Sunuwar" → "बिशाल सुनुवार").
 - English prose (announcements, prayer points): translate into Nepali.
 - Song lyrics and Bible verse text: use exactly as provided — do not alter them.
 
-Slide order: welcome → host → opening-prayer → lyrics → sermon → bible (one slide per reference) → announcements → closing-prayer
+Slide order: welcome → host → opening-prayer → lyrics → sermon → bible-reader → bible (one slide per reference) → announcements → closing-prayer
 
 For the welcome slide:
 - Set "title" to a short, warm Nepali Christian welcome title (e.g. "परमेश्वरको घरमा स्वागत छ")
@@ -45,12 +48,19 @@ For the welcome slide:
 - Set "subtitle" to the fellowshipDate converted to Bikram Sambat (BS) calendar and written fully in Nepali Devanagari numerals and Nepali month name (e.g. "फाल्गुन १७, २०८२")
 
 For the host slide:
-- Set "title" to "आयोजक"
+- Set "title" to "सञ्चालन"
 - Set "content" to the anchorName transliterated into Devanagari
 
 For the sermon slide:
 - Set "title" to "उपदेश"
 - Set "content" to the sermonLeader's name transliterated into Devanagari
+
+For the bible-reader slide:
+- Only create this slide if bibleReaderText is provided.
+- Set "type" to "bible-reader"
+- Set "title" to "बाइबल वाचन"
+- Set "content" to bibleReaderText exactly as provided.
+- Set "subtitle" to the bibleReaderName transliterated into Devanagari, followed by " · ", followed by bibleReaderVerse transliterated into Devanagari if needed.
 
 For lyrics slides:
 - Split each song into one slide per section (Verse 1, Chorus, Verse 2, Bridge, etc.)

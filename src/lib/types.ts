@@ -3,6 +3,7 @@ export type SlideType =
   | 'host'
   | 'opening-prayer'
   | 'lyrics'
+  | 'bible-reader'
   | 'bible'
   | 'sermon'
   | 'announcements'
@@ -54,6 +55,9 @@ export interface BibleEntry {
 export interface GenerateRequest {
   fellowshipDate: string
   anchorName: string
+  bibleReaderName: string
+  bibleReaderVerse: string
+  bibleReaderText: string
   sermonLeader: string
   songs: SongEntry[]
   bibleRefs: BibleEntry[]
@@ -66,6 +70,7 @@ export const SLIDE_COLORS: Record<SlideType, string> = {
   host: '#0ea5e9',
   'opening-prayer': '#9333ea',
   lyrics: '#6366f1',
+  'bible-reader': '#16a34a',
   bible: '#22c55e',
   sermon: '#f97316',
   announcements: '#14b8a6',

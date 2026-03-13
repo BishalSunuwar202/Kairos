@@ -120,6 +120,29 @@ function parseBibleRef(ref: string): { bookNum: number; chapter: number; verse: 
   return { bookNum, chapter: parseInt(match[2]), verse: parseInt(match[3]) }
 }
 
+function parseBibleRange(ref: string): {
+  bookNum: number
+  chapter: number
+  startVerse: number
+  endVerse: number
+} | null {
+  const normalized = devanagariToArabic(ref.trim()).replace(/\s*-\s*/, '-')
+  const match = normalized.match(/^(.+?)\s+(\d+):(\d+)-(\d+)$/)
+  if (!match) return null
+
+  const bookKey = match[1].toLowerCase().trim()
+  const bookNum = BOOK_NUMBERS[bookKey]
+  if (!bookNum) return null
+
+  const chapter = parseInt(match[2])
+  const startVerse = parseInt(match[3])
+  const endVerse = parseInt(match[4])
+
+  if (startVerse > endVerse) return null
+
+  return { bookNum, chapter, startVerse, endVerse }
+}
+
 export async function lookupBible(
   ref: string
 ): Promise<{ text: string } | { error: string }> {
@@ -137,6 +160,33 @@ export async function lookupBible(
 
   if (error || !data) return { error: 'Verse not found. Check the reference.' }
   return { text: data.text.trim() }
+}
+
+export async function lookupBibleRange(
+  ref: string
+): Promise<{ text: string } | { error: string }> {
+  const parsed = parseBibleRange(ref)
+  if (!parsed) return { error: 'Could not parse reference. Try "John 3:1-10" format.' }
+
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('bible_verses')
+    .select('verse, text')
+    .eq('book_num', parsed.bookNum)
+    .eq('chapter', parsed.chapter)
+    .gte('verse', parsed.startVerse)
+    .lte('verse', parsed.endVerse)
+    .order('verse', { ascending: true })
+
+  if (error || !data || data.length === 0) {
+    return { error: 'Verse range not found. Check the reference.' }
+  }
+
+  const text = data
+    .map((entry) => `${entry.verse}. ${entry.text.trim()}`)
+    .join('\n')
+
+  return { text }
 }
 
 // ─────────────────────────────────────────────────────────────────
