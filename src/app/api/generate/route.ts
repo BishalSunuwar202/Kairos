@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     system: `You are a church fellowship presentation builder for a Nepali church community.
 Return ONLY a valid JSON array of slide objects. No markdown, no code fences, no explanation.
 Each object must have: { "id": number, "type": string, "title": string, "content": string, "subtitle"?: string }
-Valid types: welcome, host, opening-prayer, lyrics, sermon, bible-reader, bible, announcements, closing-prayer
+Valid types: welcome, host, lyrics, sermon, bible-reader, bible, announcements, closing-prayer
 
 Language rules (strictly enforced):
 - All slide text (title, content, subtitle) must be in Nepali (Devanagari script).
@@ -40,7 +40,7 @@ Language rules (strictly enforced):
 - English prose (announcements, prayer points): translate into Nepali.
 - Song lyrics and Bible verse text: use exactly as provided — do not alter them.
 
-Slide order: welcome → host → opening-prayer → lyrics → sermon → bible-reader → bible (one slide per reference) → announcements → closing-prayer
+Slide order: welcome → host → lyrics → sermon → bible-reader → bible (one slide per reference) → announcements → closing-prayer
 
 For the welcome slide:
 - Set "title" to a short, warm Nepali Christian welcome title (e.g. "परमेश्वरको घरमा स्वागत छ")
@@ -52,7 +52,7 @@ For the host slide:
 - Set "content" to the anchorName transliterated into Devanagari
 
 For the sermon slide:
-- Set "title" to "उपदेश"
+- Set "title" to "बचन"
 - Set "content" to the sermonLeader's name transliterated into Devanagari
 
 For the bible-reader slide:
