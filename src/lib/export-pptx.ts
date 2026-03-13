@@ -6,6 +6,7 @@ const TYPE_LABELS: Record<SlideType, string> = {
   'host':           'आयोजक',
   'opening-prayer': 'आरम्भिक प्रार्थना',
   'lyrics':         'भजन',
+  'bible-reader':   'बाइबल वाचन',
   'bible':          'बाइबल',
   'sermon':         'उपदेश',
   'announcements':  'सूचनाहरू',

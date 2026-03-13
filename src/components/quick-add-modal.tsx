@@ -14,6 +14,7 @@ const SLIDE_TYPE_OPTIONS: { value: SlideType; label: string }[] = [
   { value: 'host',           label: 'आयोजक (Host)' },
   { value: 'opening-prayer', label: 'आरम्भिक प्रार्थना (Opening Prayer)' },
   { value: 'lyrics',         label: 'भजन (Lyrics)' },
+  { value: 'bible-reader',   label: 'बाइबल वाचन (Bible Reader)' },
   { value: 'bible',          label: 'बाइबल (Bible)' },
   { value: 'sermon',         label: 'उपदेश (Sermon)' },
   { value: 'announcements',  label: 'सूचनाहरू (Announcements)' },
