@@ -1,7 +1,12 @@
 import { generateText } from 'ai'
 import { google } from '@ai-sdk/google'
 import { createClient } from '@/lib/supabase/server'
-import type { GenerateRequest } from '@/lib/types'
+import type { GenerateRequest, Slide } from '@/lib/types'
+
+function buildBibleReaderSubtitle(body: GenerateRequest): string | undefined {
+  const parts = [body.bibleReaderName.trim(), body.bibleReaderVerse.trim()].filter(Boolean)
+  return parts.length > 0 ? parts.join(' · ') : undefined
+}
 
 export async function POST(req: Request) {
   const supabase = await createClient()
@@ -102,5 +107,18 @@ All songs should appear together in the lyrics section before moving to sermon.`
   })
 
   const cleaned = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim()
-  return Response.json({ slides: JSON.parse(cleaned) })
+  const parsedSlides = JSON.parse(cleaned) as Slide[]
+  const bibleReaderSubtitle = buildBibleReaderSubtitle(body)
+
+  const slides = parsedSlides.map((slide) => {
+    if (slide.type !== 'bible-reader') return slide
+
+    return {
+      ...slide,
+      title: slide.title?.trim() || 'बाइबल वाचन',
+      subtitle: slide.subtitle?.trim() || bibleReaderSubtitle,
+    }
+  })
+
+  return Response.json({ slides })
 }
