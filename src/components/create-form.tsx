@@ -157,12 +157,13 @@ export function CreateForm() {
     if (!ref) return
     setFetchingBible(index)
     try {
-      const result = await lookupBible(ref)
+      const isRange = /\d+\s*-\s*\d+$/.test(ref)
+      const result = isRange ? await lookupBibleRange(ref) : await lookupBible(ref)
       if ('error' in result) {
         toast.error(result.error)
       } else {
         updateBibleRef(index, 'text', result.text)
-        toast.success('Verse fetched')
+        toast.success(isRange ? 'Verse range fetched' : 'Verse fetched')
       }
     } finally {
       setFetchingBible(null)
