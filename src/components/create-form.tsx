@@ -14,7 +14,7 @@ import { lookupBible, lookupBibleRange, lookupSong } from '@/actions/lookup-acti
 import { toast } from 'sonner'
 import { Check, ImageIcon, Loader2, Play, Plus, Save, Trash2, X } from 'lucide-react'
 import type { BibleEntry, GenerateRequest, Slide, SongEntry } from '@/lib/types'
-import { DEMO_SLIDES } from '@/lib/demo-slides'
+import { DEMO_BIBLE_REFS, DEMO_FORM, DEMO_SLIDES, DEMO_SONGS } from '@/lib/demo-slides'
 
 const CREED_SLIDE_ID = -999
 
@@ -38,18 +38,21 @@ function emptySong(): SongState {
 }
 
 export function CreateForm() {
-  const { slides, setSlides, setIsPresenting, currentSlide, setCurrentSlide } =
+  const { slides, setSlides, moveSlide, setIsPresenting, currentSlide, setCurrentSlide } =
     usePresentationStore()
 
   const [form, setForm] = useState({
     fellowshipDate: '',
     anchorName: '',
+    offeringServiceName: '',
+    offeringPrayerName: '',
+    specialTimeName: '',
     bibleReaderName: '',
     bibleReaderVerse: '',
     bibleReaderText: '',
     sermonLeader: '',
-    announcements: '',
-    prayerPoints: '',
+    announcements: 'सागर तामाङ',
+    prayerPoints: 'रबिन खड्का',
   })
   const [songs, setSongs] = useState<SongState[]>([emptySong()])
   const [bibleRefs, setBibleRefs] = useState<BibleEntry[]>([{ ref: '', text: '' }])
@@ -60,6 +63,8 @@ export function CreateForm() {
   const [fetchingSong, setFetchingSong] = useState<number | null>(null)
   const [includeCreed, setIncludeCreed] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [draggedSlideIndex, setDraggedSlideIndex] = useState<number | null>(null)
+  const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null)
   const logoInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -91,6 +96,32 @@ export function CreateForm() {
       setSlides(slides.filter(s => s.id !== CREED_SLIDE_ID))
     }
     setIncludeCreed(v => !v)
+  }
+
+  function handleSlideDragStart(index: number) {
+    setDraggedSlideIndex(index)
+    setDropTargetIndex(index)
+  }
+
+  function handleSlideDrop(index: number) {
+    if (draggedSlideIndex === null) return
+    moveSlide(draggedSlideIndex, index)
+    setDraggedSlideIndex(null)
+    setDropTargetIndex(null)
+  }
+
+  function resetDragState() {
+    setDraggedSlideIndex(null)
+    setDropTargetIndex(null)
+  }
+
+  function loadDemo() {
+    setForm(DEMO_FORM)
+    setSongs(DEMO_SONGS)
+    setBibleRefs(DEMO_BIBLE_REFS)
+    setIncludeCreed(false)
+    setCurrentSlide(0)
+    setSlides(DEMO_SLIDES)
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
@@ -295,6 +326,40 @@ export function CreateForm() {
               onChange={handleChange}
             />
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <Label htmlFor="offeringServiceName">भेटी सेवा</Label>
+            <Input
+              id="offeringServiceName"
+              name="offeringServiceName"
+              placeholder="e.g. Sagar Tamang"
+              value={form.offeringServiceName}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="offeringPrayerName">भेटीको प्रार्थना</Label>
+            <Input
+              id="offeringPrayerName"
+              name="offeringPrayerName"
+              placeholder="e.g. Rabin Khadka"
+              value={form.offeringPrayerName}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="specialTimeName">Special Time</Label>
+          <Input
+            id="specialTimeName"
+            name="specialTimeName"
+            placeholder="e.g. Youth Team"
+            value={form.specialTimeName}
+            onChange={handleChange}
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -545,7 +610,7 @@ export function CreateForm() {
           <h2 className="text-lg font-semibold text-[#1a3a5c]">
             {slides.length > 0 ? `${slides.length} Slides` : 'Preview'}
           </h2>
-          <Button variant="outline" size="sm" onClick={() => setSlides(DEMO_SLIDES)}>
+          <Button variant="outline" size="sm" onClick={loadDemo}>
             Try Demo
           </Button>
         </div>
@@ -563,9 +628,26 @@ export function CreateForm() {
                   index={i}
                   isActive={i === currentSlide}
                   onClick={() => setCurrentSlide(i)}
+                  draggable
+                  isDragging={i === draggedSlideIndex}
+                  isDropTarget={i === dropTargetIndex && i !== draggedSlideIndex}
+                  onDragStart={(e) => {
+                    e.dataTransfer.effectAllowed = 'move'
+                    handleSlideDragStart(i)
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault()
+                    if (dropTargetIndex !== i) setDropTargetIndex(i)
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    handleSlideDrop(i)
+                  }}
+                  onDragEnd={resetDragState}
                 />
               ))}
             </div>
+            <p className="text-xs text-gray-400">Drag slides up or down to reorder them before presenting.</p>
             <SlideFormatToolbar />
           </>
         )}
