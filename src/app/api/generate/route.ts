@@ -13,6 +13,9 @@ export async function POST(req: Request) {
   const userMessage = JSON.stringify({
     fellowshipDate: body.fellowshipDate,
     anchorName: body.anchorName,
+    offeringServiceName: body.offeringServiceName,
+    offeringPrayerName: body.offeringPrayerName,
+    specialTimeName: body.specialTimeName,
     bibleReaderName: body.bibleReaderName,
     bibleReaderVerse: body.bibleReaderVerse,
     bibleReaderText: body.bibleReaderText,
@@ -32,15 +35,16 @@ export async function POST(req: Request) {
     system: `You are a church fellowship presentation builder for a Nepali church community.
 Return ONLY a valid JSON array of slide objects. No markdown, no code fences, no explanation.
 Each object must have: { "id": number, "type": string, "title": string, "content": string, "subtitle"?: string }
-Valid types: welcome, host, lyrics, sermon, bible-reader, bible, announcements, closing-prayer
+Valid types: welcome, host, offering-service, offering-prayer, opening-prayer, lyrics, special-time, sermon, bible-reader, bible, announcements, closing-prayer
 
 Language rules (strictly enforced):
 - All slide text (title, content, subtitle) must be in Nepali (Devanagari script).
-- People's names (anchorName, bibleReaderName, sermonLeader): transliterate into Devanagari (e.g. "Bishal Sunuwar" → "बिशाल सुनुवार").
+- People's names (anchorName, offeringServiceName, offeringPrayerName, specialTimeName, bibleReaderName, sermonLeader): transliterate into Devanagari (e.g. "Bishal Sunuwar" → "बिशाल सुनुवार").
 - English prose (announcements, prayer points): translate into Nepali.
+- Any English names included inside announcements or prayer points must also be transliterated into Devanagari.
 - Song lyrics and Bible verse text: use exactly as provided — do not alter them.
 
-Slide order: welcome → host → lyrics → sermon → bible-reader → bible (one slide per reference) → announcements → closing-prayer
+Slide order: welcome → host → offering-service → offering-prayer → opening-prayer → lyrics → special-time → sermon → bible-reader → bible (one slide per reference) → announcements → closing-prayer
 
 For the welcome slide:
 - Set "title" to a short, warm Nepali Christian welcome title (e.g. "परमेश्वरको घरमा स्वागत छ")
@@ -51,9 +55,33 @@ For the host slide:
 - Set "title" to "सञ्चालन"
 - Set "content" to the anchorName transliterated into Devanagari
 
+For the offering-service slide:
+- Only create this slide if offeringServiceName is provided.
+- Set "type" to "offering-service"
+- Set "title" to "भेटी सेवा"
+- Set "content" to the offeringServiceName transliterated into Devanagari
+
+For the offering-prayer slide:
+- Only create this slide if offeringPrayerName is provided.
+- Set "type" to "offering-prayer"
+- Set "title" to "भेटीको प्रार्थना"
+- Set "content" to the offeringPrayerName transliterated into Devanagari
+
+For the opening-prayer slide:
+- Create exactly one opening prayer slide after offering-prayer.
+- Set "type" to "opening-prayer"
+- Set "title" to "आरम्भिक प्रार्थना"
+- Set "content" to a short Nepali opening prayer suitable before worship or fellowship begins.
+
 For the sermon slide:
 - Set "title" to "बचन"
 - Set "content" to the sermonLeader's name transliterated into Devanagari
+
+For the special-time slide:
+- Only create this slide if specialTimeName is provided.
+- Set "type" to "special-time"
+- Set "title" to "स्पेशल समय"
+- Set "content" to the specialTimeName transliterated into Devanagari
 
 For the bible-reader slide:
 - Only create this slide if bibleReaderText is provided.
