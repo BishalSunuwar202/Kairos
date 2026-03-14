@@ -4,8 +4,11 @@ import { SLIDE_COLORS } from '@/lib/types'
 const TYPE_LABELS: Record<SlideType, string> = {
   'welcome':        'स्वागत',
   'host':           'आयोजक',
+  'offering-service': 'भेटी सेवा',
+  'offering-prayer': 'भेटीको प्रार्थना',
   'opening-prayer': 'आरम्भिक प्रार्थना',
   'lyrics':         'भजन',
+  'special-time':   'स्पेशल समय',
   'bible-reader':   'बाइबल वाचन',
   'bible':          'बाइबल',
   'sermon':         'उपदेश',
