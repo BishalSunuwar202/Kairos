@@ -45,6 +45,15 @@ export interface Presentation {
   created_at: string
 }
 
+export interface ProjectorSessionState {
+  sessionId: string
+  slides: Slide[]
+  currentSlide: number
+  title: string
+  logoUrl?: string | null
+  isActive: boolean
+}
+
 export interface SongEntry {
   title: string
   lyricsText: string

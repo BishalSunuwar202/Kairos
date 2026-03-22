@@ -9,11 +9,18 @@ import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight, FileDown, FileText, LayoutPanelLeft, Maximize2, Minimize2, Plus, RotateCcw, X } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { QuickAddModal } from './quick-add-modal'
+import { toast } from 'sonner'
+import type { ProjectorSessionState } from '@/lib/types'
+
+const CHANNEL_NAME = 'kairos-projector'
+const STORAGE_KEY = 'kairos_projector_session'
 
 export function SlideViewer() {
   const { slides, currentSlide, isPresenting, setIsPresenting, nextSlide, prevSlide, setCurrentSlide } =
     usePresentationStore()
   const containerRef = useRef<HTMLDivElement>(null)
+  const projectorWindowRef = useRef<Window | null>(null)
+  const projectorChannelRef = useRef<BroadcastChannel | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showNextPanel, setShowNextPanel] = useState(true)
@@ -23,6 +30,16 @@ export function SlideViewer() {
   useEffect(() => {
     setLogoUrl(localStorage.getItem('kairos_church_logo'))
   }, [isPresenting])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('BroadcastChannel' in window)) return
+    projectorChannelRef.current = new BroadcastChannel(CHANNEL_NAME)
+
+    return () => {
+      projectorChannelRef.current?.close()
+      projectorChannelRef.current = null
+    }
+  }, [])
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -43,6 +60,48 @@ export function SlideViewer() {
       document.removeEventListener('fullscreenchange', handleFullscreenChange)
     }
   }, [isPresenting, nextSlide, prevSlide, setIsPresenting])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    if (!isPresenting || slides.length === 0) {
+      const inactiveSession: ProjectorSessionState | null = null
+      window.localStorage.removeItem(STORAGE_KEY)
+      projectorChannelRef.current?.postMessage(inactiveSession)
+      if (projectorWindowRef.current && !projectorWindowRef.current.closed) {
+        projectorWindowRef.current.close()
+      }
+      projectorWindowRef.current = null
+      return
+    }
+
+    const session: ProjectorSessionState = {
+      sessionId: 'live',
+      slides,
+      currentSlide,
+      title: 'Live Presentation',
+      logoUrl,
+      isActive: true,
+    }
+
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
+    projectorChannelRef.current?.postMessage(session)
+  }, [currentSlide, isPresenting, logoUrl, slides])
+
+  useEffect(() => {
+    if (!isPresenting || typeof window === 'undefined') return
+
+    const projectorUrl = `${window.location.origin}/projector`
+    const popup = window.open(projectorUrl, 'kairos-projector', 'popup=yes,width=1280,height=720')
+
+    if (!popup) {
+      toast.error('Projector window was blocked. Allow pop-ups to use presenter mode.')
+      return
+    }
+
+    projectorWindowRef.current = popup
+    popup.focus()
+  }, [isPresenting])
 
   function toggleFullscreen() {
     if (!document.fullscreenElement) {
