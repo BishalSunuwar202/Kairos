@@ -6,7 +6,7 @@ An AI-powered church presentation builder for Nepali Christian fellowship commun
 
 ## Features
 
-- AI generates all slides in Nepali with name transliteration and Bikram Sambat (BS) date conversion
+- AI generates Nepali slide content and preserves names exactly as entered by the user, with Bikram Sambat (BS) date conversion
 - AI-generated warm Nepali Christian welcome message for each fellowship
 - Fullscreen presenter mode with keyboard navigation (arrow keys, Escape)
 - Slide format toolbar: font size, bold, underline, colors, padding, vertical & horizontal text alignment
