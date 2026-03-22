@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import type { Slide, SlideType } from '@/lib/types'
 import { SLIDE_COLORS } from '@/lib/types'
 
@@ -97,7 +98,16 @@ export function SlideDisplay({ slide, logoUrl }: SlideDisplayProps) {
 
       <div className="absolute bottom-4 right-6">
         {logoUrl
-          ? <img src={logoUrl} alt="Church logo" className="h-10 w-auto object-contain opacity-80" />
+          ? (
+            <Image
+              src={logoUrl}
+              alt="Church logo"
+              width={80}
+              height={40}
+              unoptimized
+              className="h-10 w-auto object-contain opacity-80"
+            />
+          )
           : <span className="text-3xl text-gray-200 select-none">✝</span>
         }
       </div>
