@@ -372,11 +372,11 @@ export function CreateForm() {
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="anchorName">Anchor / Host Name</Label>
+            <Label htmlFor="anchorName">Anchor / Host Name (English or Nepali)</Label>
             <Input
               id="anchorName"
               name="anchorName"
-              placeholder="e.g. John Doe"
+              placeholder="e.g. John Doe or जोन डो"
               value={form.anchorName}
               onChange={handleChange}
             />
@@ -385,21 +385,21 @@ export function CreateForm() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <Label htmlFor="offeringServiceName">भेटी सेवा</Label>
+            <Label htmlFor="offeringServiceName">भेटी सेवा (English or Nepali)</Label>
             <Input
               id="offeringServiceName"
               name="offeringServiceName"
-              placeholder="e.g. Sagar Tamang"
+              placeholder="e.g. Sagar Tamang or सागर तामाङ"
               value={form.offeringServiceName}
               onChange={handleChange}
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="offeringPrayerName">भेटीको प्रार्थना</Label>
+            <Label htmlFor="offeringPrayerName">भेटीको प्रार्थना (English or Nepali)</Label>
             <Input
               id="offeringPrayerName"
               name="offeringPrayerName"
-              placeholder="e.g. Rabin Khadka"
+              placeholder="e.g. Rabin Khadka or रबिन खड्का"
               value={form.offeringPrayerName}
               onChange={handleChange}
             />
@@ -407,22 +407,22 @@ export function CreateForm() {
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="lastPrayerName">Last prayer</Label>
+          <Label htmlFor="lastPrayerName">Last Prayer (English or Nepali)</Label>
           <Input
             id="lastPrayerName"
             name="lastPrayerName"
-            placeholder="e.g. Rabin Khadka"
+            placeholder="e.g. Rabin Khadka or रबिन खड्का"
             value={form.lastPrayerName}
             onChange={handleChange}
           />
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="specialTimeName">Special Time</Label>
+          <Label htmlFor="specialTimeName">Special Time (English or Nepali)</Label>
           <Input
             id="specialTimeName"
             name="specialTimeName"
-            placeholder="e.g. Youth Team"
+            placeholder="e.g. Youth Team or युवा टोली"
             value={form.specialTimeName}
             onChange={handleChange}
           />
@@ -430,21 +430,21 @@ export function CreateForm() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <Label htmlFor="bibleReaderName">Bible Reader</Label>
+            <Label htmlFor="bibleReaderName">Bible Reader (English or Nepali)</Label>
             <Input
               id="bibleReaderName"
               name="bibleReaderName"
-              placeholder="e.g. John Doe"
+              placeholder="e.g. John Doe or जोन डो"
               value={form.bibleReaderName}
               onChange={handleChange}
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="sermonLeader">Sermon Leader</Label>
+            <Label htmlFor="sermonLeader">Sermon Leader (English or Nepali)</Label>
             <Input
               id="sermonLeader"
               name="sermonLeader"
-              placeholder="e.g. Pastor Jane"
+              placeholder="e.g. Pastor Jane or पास्टर जेन"
               value={form.sermonLeader}
               onChange={handleChange}
             />

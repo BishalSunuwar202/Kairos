@@ -47,8 +47,8 @@ Each object must have: { "id": number, "type": string, "title": string, "content
 Valid types: welcome, host, offering-service, offering-prayer, opening-prayer, lyrics, special-time, sermon, bible-reader, bible, closing-prayer
 
 Language rules (strictly enforced):
-- All slide text (title, content, subtitle) must be in Nepali (Devanagari script).
-- People's names (anchorName, offeringServiceName, offeringPrayerName, lastPrayerName, specialTimeName, bibleReaderName, sermonLeader): transliterate into Devanagari (e.g. "Bishal Sunuwar" → "बिशाल सुनुवार").
+- All non-name slide text that you generate yourself must be in Nepali (Devanagari script).
+- Person-name fields (anchorName, offeringServiceName, offeringPrayerName, lastPrayerName, specialTimeName, bibleReaderName, sermonLeader) are already final display values from the user. Preserve them exactly as provided. Do not translate, transliterate, normalize, or correct them.
 - Song lyrics and Bible verse text: use exactly as provided — do not alter them.
 
 Slide order: welcome → host → offering-service → offering-prayer → opening-prayer → lyrics → special-time → sermon → bible-reader → bible (one slide per reference) → closing-prayer
@@ -60,19 +60,19 @@ For the welcome slide:
 
 For the host slide:
 - Set "title" to "सञ्चालन"
-- Set "content" to the anchorName transliterated into Devanagari
+- Set "content" to anchorName exactly as provided
 
 For the offering-service slide:
 - Only create this slide if offeringServiceName is provided.
 - Set "type" to "offering-service"
 - Set "title" to "भेटी सेवा"
-- Set "content" to the offeringServiceName transliterated into Devanagari
+- Set "content" to offeringServiceName exactly as provided
 
 For the offering-prayer slide:
 - Only create this slide if offeringPrayerName is provided.
 - Set "type" to "offering-prayer"
 - Set "title" to "भेटीको प्रार्थना"
-- Set "content" to the offeringPrayerName transliterated into Devanagari
+- Set "content" to offeringPrayerName exactly as provided
 
 For the opening-prayer slide:
 - Create exactly one opening prayer slide after offering-prayer.
@@ -82,26 +82,26 @@ For the opening-prayer slide:
 
 For the sermon slide:
 - Set "title" to "बचन"
-- Set "content" to the sermonLeader's name transliterated into Devanagari
+- Set "content" to sermonLeader exactly as provided
 
 For the special-time slide:
 - Only create this slide if specialTimeName is provided.
 - Set "type" to "special-time"
 - Set "title" to "स्पेशल समय"
-- Set "content" to the specialTimeName transliterated into Devanagari
+- Set "content" to specialTimeName exactly as provided
 
 For the bible-reader slide:
 - Only create this slide if bibleReaderText is provided.
 - Set "type" to "bible-reader"
 - Set "title" to "बाइबल वाचन"
 - Set "content" to bibleReaderText exactly as provided.
-- Set "subtitle" to the bibleReaderName transliterated into Devanagari, followed by " · ", followed by bibleReaderVerse transliterated into Devanagari if needed.
+- Set "subtitle" to bibleReaderName exactly as provided, followed by " · ", followed by bibleReaderVerse exactly as provided.
 
 For the closing-prayer slide:
 - Only create this slide if lastPrayerName is provided.
 - Set "type" to "closing-prayer"
 - Set "title" to "समापन प्रार्थना"
-- Set "content" to the lastPrayerName transliterated into Devanagari
+- Set "content" to lastPrayerName exactly as provided
 
 For lyrics slides:
 - Split each bhajan/chorus song and each worship song into one slide per section (Verse 1, Chorus, Verse 2, Bridge, etc.)
