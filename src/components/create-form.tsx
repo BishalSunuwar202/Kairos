@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,7 +15,7 @@ import { lookupBible, lookupBibleRange, lookupSong } from '@/actions/lookup-acti
 import { toast } from 'sonner'
 import { Check, ImageIcon, Loader2, Play, Plus, Save, Trash2, X } from 'lucide-react'
 import type { BibleEntry, GenerateRequest, Slide, SongEntry } from '@/lib/types'
-import { DEMO_BIBLE_REFS, DEMO_FORM, DEMO_SLIDES, DEMO_SONGS } from '@/lib/demo-slides'
+import { DEMO_BIBLE_REFS, DEMO_FORM, DEMO_SLIDES, DEMO_SONGS, DEMO_WORSHIP_SONGS } from '@/lib/demo-slides'
 
 const CREED_SLIDE_ID = -999
 
@@ -46,15 +47,15 @@ export function CreateForm() {
     anchorName: '',
     offeringServiceName: '',
     offeringPrayerName: '',
+    lastPrayerName: '',
     specialTimeName: '',
     bibleReaderName: '',
     bibleReaderVerse: '',
     bibleReaderText: '',
     sermonLeader: '',
-    announcements: 'सागर तामाङ',
-    prayerPoints: 'रबिन खड्का',
   })
   const [songs, setSongs] = useState<SongState[]>([emptySong()])
+  const [worshipSongs, setWorshipSongs] = useState<SongState[]>([emptySong()])
   const [bibleRefs, setBibleRefs] = useState<BibleEntry[]>([{ ref: '', text: '' }])
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -118,6 +119,7 @@ export function CreateForm() {
   function loadDemo() {
     setForm(DEMO_FORM)
     setSongs(DEMO_SONGS)
+    setWorshipSongs(DEMO_WORSHIP_SONGS)
     setBibleRefs(DEMO_BIBLE_REFS)
     setIncludeCreed(false)
     setCurrentSlide(0)
@@ -138,6 +140,18 @@ export function CreateForm() {
 
   function removeSong(index: number) {
     setSongs((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  function updateWorshipSong(index: number, field: keyof SongState, value: string) {
+    setWorshipSongs((prev) => prev.map((s, i) => i === index ? { ...s, [field]: value } : s))
+  }
+
+  function addWorshipSong() {
+    setWorshipSongs((prev) => [...prev, emptySong()])
+  }
+
+  function removeWorshipSong(index: number) {
+    setWorshipSongs((prev) => prev.filter((_, i) => i !== index))
   }
 
   function updateBibleRef(index: number, field: keyof BibleEntry, value: string) {
@@ -212,6 +226,30 @@ export function CreateForm() {
     }
   }
 
+  async function handleFetchWorshipSong(index: number) {
+    const song = worshipSongs[index]
+    const hasQuery = song.title.trim() || song.number.trim()
+    if (!hasQuery) return
+
+    setFetchingSong(index + 1000)
+    try {
+      const result = await lookupSong({
+        title: song.title.trim() || undefined,
+        number: song.number ? parseInt(song.number) : undefined,
+      })
+      if (result.found) {
+        updateWorshipSong(index, 'lyricsText', result.lyrics)
+        toast.success(
+          result.source === 'library' ? 'Found in song library' : 'Found on nepalichristiansongs.com'
+        )
+      } else {
+        toast.error('Song not found. Try a different title or number.')
+      }
+    } finally {
+      setFetchingSong(null)
+    }
+  }
+
   async function handleGenerate() {
     if (!form.fellowshipDate) {
       toast.error('Please enter the fellowship date')
@@ -224,8 +262,17 @@ export function CreateForm() {
         title: s.title,
         lyricsText: s.lyricsText,
       }))
+      const worshipSongEntries: SongEntry[] = worshipSongs.map((s) => ({
+        title: s.title,
+        lyricsText: s.lyricsText,
+      }))
 
-      const body: GenerateRequest = { ...form, songs: songEntries, bibleRefs }
+      const body: GenerateRequest = {
+        ...form,
+        songs: songEntries,
+        worshipSongs: worshipSongEntries,
+        bibleRefs,
+      }
 
       const res = await fetch('/api/generate', {
         method: 'POST',
@@ -279,7 +326,14 @@ export function CreateForm() {
         {/* Church Logo */}
         <div className="flex items-center gap-3 p-3 rounded-lg border bg-gray-50">
           {logoUrl ? (
-            <img src={logoUrl} alt="Church logo" className="h-12 w-12 object-contain rounded" />
+            <Image
+              src={logoUrl}
+              alt="Church logo"
+              width={48}
+              height={48}
+              unoptimized
+              className="h-12 w-12 object-contain rounded"
+            />
           ) : (
             <div className="h-12 w-12 rounded border-2 border-dashed border-gray-300 flex items-center justify-center bg-white">
               <ImageIcon className="w-5 h-5 text-gray-400" />
@@ -353,6 +407,17 @@ export function CreateForm() {
         </div>
 
         <div className="space-y-1">
+          <Label htmlFor="lastPrayerName">Last prayer</Label>
+          <Input
+            id="lastPrayerName"
+            name="lastPrayerName"
+            placeholder="e.g. Rabin Khadka"
+            value={form.lastPrayerName}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="space-y-1">
           <Label htmlFor="specialTimeName">Special Time</Label>
           <Input
             id="specialTimeName"
@@ -421,7 +486,7 @@ export function CreateForm() {
         {/* Songs */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label>Song Lyrics</Label>
+            <Label>Bhajan and Chorus</Label>
             <Button type="button" variant="outline" size="sm" onClick={addSong}>
               <Plus className="w-3 h-3 mr-1" /> Add song
             </Button>
@@ -430,7 +495,7 @@ export function CreateForm() {
           {songs.map((song, i) => (
             <Card key={i} className="p-3 space-y-2">
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-[#1a3a5c] shrink-0">Song {i + 1}</span>
+                <span className="text-xs font-semibold text-[#1a3a5c] shrink-0">Bhajan {i + 1}</span>
                 <Input
                   placeholder="#"
                   value={song.number}
@@ -498,6 +563,66 @@ export function CreateForm() {
           </div>
         </div>
 
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label>Worship Song</Label>
+            <Button type="button" variant="outline" size="sm" onClick={addWorshipSong}>
+              <Plus className="w-3 h-3 mr-1" /> Add song
+            </Button>
+          </div>
+
+          {worshipSongs.map((song, i) => (
+            <Card key={i} className="p-3 space-y-2">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-semibold text-[#1a3a5c] shrink-0">Worship Song {i + 1}</span>
+                <Input
+                  placeholder="#"
+                  value={song.number}
+                  onChange={(e) => updateWorshipSong(i, 'number', e.target.value)}
+                  className="h-8 text-sm w-14 shrink-0"
+                  type="number"
+                  min="1"
+                />
+                <Input
+                  placeholder="Song title (e.g. आराधना गरौं)"
+                  value={song.title}
+                  onChange={(e) => updateWorshipSong(i, 'title', e.target.value)}
+                  className="h-8 text-sm"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs shrink-0"
+                  disabled={(!song.title.trim() && !song.number.trim()) || fetchingSong === i + 1000}
+                  onClick={() => handleFetchWorshipSong(i)}
+                >
+                  {fetchingSong === i + 1000 ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Fetch'}
+                </Button>
+                {worshipSongs.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0 text-gray-400 hover:text-red-500"
+                    onClick={() => removeWorshipSong(i)}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                )}
+              </div>
+
+              <Textarea
+                placeholder="Paste lyrics here, or use Fetch to auto-fill"
+                rows={3}
+                value={song.lyricsText}
+                onChange={(e) => updateWorshipSong(i, 'lyricsText', e.target.value)}
+                className="text-sm"
+              />
+            </Card>
+          ))}
+        </div>
+
         <hr className="border-gray-100" />
 
         {/* Bible References */}
@@ -548,30 +673,6 @@ export function CreateForm() {
               />
             </div>
           ))}
-        </div>
-
-        <div className="space-y-1">
-          <Label htmlFor="announcements">Announcements</Label>
-          <Textarea
-            id="announcements"
-            name="announcements"
-            placeholder="List announcements..."
-            rows={3}
-            value={form.announcements}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="space-y-1">
-          <Label htmlFor="prayerPoints">Prayer Points</Label>
-          <Textarea
-            id="prayerPoints"
-            name="prayerPoints"
-            placeholder="Prayer points..."
-            rows={3}
-            value={form.prayerPoints}
-            onChange={handleChange}
-          />
         </div>
 
         <div className="flex gap-3 pt-2">

@@ -20,6 +20,7 @@ export async function POST(req: Request) {
     anchorName: body.anchorName,
     offeringServiceName: body.offeringServiceName,
     offeringPrayerName: body.offeringPrayerName,
+    lastPrayerName: body.lastPrayerName,
     specialTimeName: body.specialTimeName,
     bibleReaderName: body.bibleReaderName,
     bibleReaderVerse: body.bibleReaderVerse,
@@ -30,9 +31,12 @@ export async function POST(req: Request) {
       title: s.title || `Song ${i + 1}`,
       lyricsText: s.lyricsText,
     })),
+    worshipSongs: body.worshipSongs.map((s, i) => ({
+      songNumber: i + 1,
+      title: s.title || `Worship Song ${i + 1}`,
+      lyricsText: s.lyricsText,
+    })),
     bibleRefs: body.bibleRefs,
-    announcements: body.announcements,
-    prayerPoints: body.prayerPoints,
   })
 
   const { text } = await generateText({
@@ -40,16 +44,14 @@ export async function POST(req: Request) {
     system: `You are a church fellowship presentation builder for a Nepali church community.
 Return ONLY a valid JSON array of slide objects. No markdown, no code fences, no explanation.
 Each object must have: { "id": number, "type": string, "title": string, "content": string, "subtitle"?: string }
-Valid types: welcome, host, offering-service, offering-prayer, opening-prayer, lyrics, special-time, sermon, bible-reader, bible, announcements, closing-prayer
+Valid types: welcome, host, offering-service, offering-prayer, opening-prayer, lyrics, special-time, sermon, bible-reader, bible, closing-prayer
 
 Language rules (strictly enforced):
 - All slide text (title, content, subtitle) must be in Nepali (Devanagari script).
-- People's names (anchorName, offeringServiceName, offeringPrayerName, specialTimeName, bibleReaderName, sermonLeader): transliterate into Devanagari (e.g. "Bishal Sunuwar" → "बिशाल सुनुवार").
-- English prose (announcements, prayer points): translate into Nepali.
-- Any English names included inside announcements or prayer points must also be transliterated into Devanagari.
+- People's names (anchorName, offeringServiceName, offeringPrayerName, lastPrayerName, specialTimeName, bibleReaderName, sermonLeader): transliterate into Devanagari (e.g. "Bishal Sunuwar" → "बिशाल सुनुवार").
 - Song lyrics and Bible verse text: use exactly as provided — do not alter them.
 
-Slide order: welcome → host → offering-service → offering-prayer → opening-prayer → lyrics → special-time → sermon → bible-reader → bible (one slide per reference) → announcements → closing-prayer
+Slide order: welcome → host → offering-service → offering-prayer → opening-prayer → lyrics → special-time → sermon → bible-reader → bible (one slide per reference) → closing-prayer
 
 For the welcome slide:
 - Set "title" to a short, warm Nepali Christian welcome title (e.g. "परमेश्वरको घरमा स्वागत छ")
@@ -95,14 +97,21 @@ For the bible-reader slide:
 - Set "content" to bibleReaderText exactly as provided.
 - Set "subtitle" to the bibleReaderName transliterated into Devanagari, followed by " · ", followed by bibleReaderVerse transliterated into Devanagari if needed.
 
-For lyrics slides:
-- Split each song into one slide per section (Verse 1, Chorus, Verse 2, Bridge, etc.)
-- Set "title" to the song title (e.g. "Amazing Grace")
-- Set "subtitle" to the section label, including the song number when there are multiple songs (e.g. "Song 1 · Verse 1", "Song 1 · Chorus", "Song 2 · Verse 1")
-- Set "content" to the actual lyrics text for that section
-- If a lyrics image is provided for a song, extract the text from it to create the lyrics slides
+For the closing-prayer slide:
+- Only create this slide if lastPrayerName is provided.
+- Set "type" to "closing-prayer"
+- Set "title" to "समापन प्रार्थना"
+- Set "content" to the lastPrayerName transliterated into Devanagari
 
-All songs should appear together in the lyrics section before moving to sermon.`,
+For lyrics slides:
+- Split each bhajan/chorus song and each worship song into one slide per section (Verse 1, Chorus, Verse 2, Bridge, etc.)
+- Set "title" to the song title (e.g. "Amazing Grace")
+- For bhajan/chorus songs, set "subtitle" to the section label, including the song number when there are multiple songs (e.g. "Bhajan 1 · Verse 1", "Bhajan 1 · Chorus", "Bhajan 2 · Verse 1")
+- For worship songs, set "subtitle" to the section label, including the worship song number when there are multiple songs (e.g. "Worship Song 1 · Verse 1", "Worship Song 1 · Chorus")
+- Set "content" to the actual lyrics text for that section
+- Generate lyrics slides for all items in "songs" first, then all items in "worshipSongs"
+
+All bhajan/chorus slides and worship song slides should appear before moving to sermon.`,
     messages: [{ role: 'user', content: userMessage }],
   })
 

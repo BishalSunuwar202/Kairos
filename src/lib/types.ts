@@ -60,15 +60,15 @@ export interface GenerateRequest {
   anchorName: string
   offeringServiceName: string
   offeringPrayerName: string
+  lastPrayerName: string
   specialTimeName: string
   bibleReaderName: string
   bibleReaderVerse: string
   bibleReaderText: string
   sermonLeader: string
   songs: SongEntry[]
+  worshipSongs: SongEntry[]
   bibleRefs: BibleEntry[]
-  announcements: string
-  prayerPoints: string
 }
 
 export const SLIDE_COLORS: Record<SlideType, string> = {

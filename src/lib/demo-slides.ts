@@ -5,13 +5,12 @@ export const DEMO_FORM = {
   anchorName: 'Bishal Sunuwar',
   offeringServiceName: 'Sagar Tamang',
   offeringPrayerName: 'Rabin Khadka',
+  lastPrayerName: 'Rabin Khadka',
   specialTimeName: 'Youth Team',
   bibleReaderName: 'Milan Rai',
   bibleReaderVerse: 'John 3:16',
   bibleReaderText: 'किनभने परमेश्वरले संसारलाई यति प्रेम गर्नुभयो कि उहाँले आफ्नो एकमात्र पुत्र दिनुभयो, ताकि जो कोही उहाँमाथि विश्वास गर्दछ, नाश हुनेछैन तर अनन्त जीवन पाउनेछ।',
   sermonLeader: 'Pastor Ramesh Shrestha',
-  announcements: 'सागर तामाङले अर्को हप्ताको सेवा समन्वय गर्नुहुनेछ।',
-  prayerPoints: 'रबिन खड्काको लागि विशेष प्रार्थना।',
 }
 
 export const DEMO_SONGS = [
@@ -19,6 +18,14 @@ export const DEMO_SONGS = [
     number: '1',
     title: 'यीशु नाम',
     lyricsText: 'पद १:\nयीशु नाम कति मीठो\nयीशु नाम कति प्यारो\nयीशु नाम सुन्दा मेरो\nहृदय आनन्दले भरिन्छ\n\nकोरस:\nहल्लेलुया, हल्लेलुया\nयीशुलाई महिमा होस्\nहल्लेलुया, हल्लेलुया\nउहाँकै नाम उच्च होस्',
+  },
+]
+
+export const DEMO_WORSHIP_SONGS = [
+  {
+    number: '1',
+    title: 'आराधना गरौं',
+    lyricsText: 'पद १:\nआराधना गरौं, प्रभुलाई महिमा दिऔं\nउहाँको प्रेम सधैं अटल छ\n\nकोरस:\nहल्लेलुया, हल्लेलुया\nहाम्रो राजा महान् हुनुहुन्छ',
   },
 ]
 
@@ -95,14 +102,8 @@ export const DEMO_SLIDES: Slide[] = [
   },
   {
     id: 11,
-    type: 'announcements',
-    title: 'सूचनाहरू',
-    content: '• सागर तामाङले अर्को हप्ताको सेवा समन्वय गर्नुहुनेछ।\n• अर्को हप्ता आइतबार विशेष प्रार्थना सभा हुनेछ।\n• युवा सङ्गति शनिबार साँझ ६ बजे।',
-  },
-  {
-    id: 12,
     type: 'closing-prayer',
     title: 'समापन प्रार्थना',
-    content: '• रबिन खड्काको लागि विशेष प्रार्थना\n• परिवारका सदस्यहरूको स्वास्थ्यको लागि\n• देशमा शान्ति र समृद्धिको लागि\n• मण्डलीको विकास र विस्तारको लागि',
+    content: 'रबिन खड्का',
   },
 ]

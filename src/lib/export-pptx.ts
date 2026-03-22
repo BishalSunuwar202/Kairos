@@ -57,7 +57,6 @@ export async function exportToPptx(slides: Slide[], fileName = 'kairos-presentat
     const valign = valignMap[fmt.verticalAlign ?? 'center']
 
     const slideWidth = 13.33
-    const slideHeight = 7.5
     const contentWidth = slideWidth - pad * 2
 
     const pptSlide = pptx.addSlide()

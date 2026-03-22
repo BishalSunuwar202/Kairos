@@ -1,6 +1,6 @@
 # Kairos — Fellowship Builder
 
-An AI-powered church presentation builder for Nepali Christian fellowship communities. Fill in your fellowship details — anchor name, sermon leader, song lyrics, Bible references, announcements, and prayer points — and AI generates a complete, slide-by-slide presentation in **Nepali (Devanagari script)**, ready to project fullscreen.
+An AI-powered church presentation builder for Nepali Christian fellowship communities. Fill in your fellowship details — anchor name, sermon leader, song lyrics, Bible references, and last prayer name — and AI generates a complete, slide-by-slide presentation in **Nepali (Devanagari script)**, ready to project fullscreen.
 
 🌐 **Live:** https://kairos-weld.vercel.app
 
