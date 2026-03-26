@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/card'
 import { SlideMini } from './slide-mini'
 import { SlideFormatToolbar } from './slide-format-toolbar'
 import { usePresentationStore } from '@/store/presentation-store'
-import { savePresentation } from '@/actions/presentation-actions'
+import { savePresentation, updatePresentation } from '@/actions/presentation-actions'
 import { lookupBible, lookupBibleRange, lookupSong } from '@/actions/lookup-actions'
 import { toast } from 'sonner'
 import { Check, ImageIcon, Loader2, Play, Plus, Save, Trash2, X } from 'lucide-react'
@@ -39,7 +39,18 @@ function emptySong(): SongState {
 }
 
 export function CreateForm() {
-  const { slides, setSlides, moveSlide, setIsPresenting, currentSlide, setCurrentSlide } =
+  const {
+    slides,
+    setSlides,
+    moveSlide,
+    setIsPresenting,
+    currentSlide,
+    setCurrentSlide,
+    editingPresentationId,
+    editingPresentationTitle,
+    editingPresentationDate,
+    clearEditingPresentation,
+  } =
     usePresentationStore()
 
   const [form, setForm] = useState({
@@ -118,6 +129,7 @@ export function CreateForm() {
   }
 
   function loadDemo() {
+    clearEditingPresentation()
     setForm(DEMO_FORM)
     setSongs(DEMO_SONGS)
     setWorshipSongs(DEMO_WORSHIP_SONGS)
@@ -300,14 +312,26 @@ export function CreateForm() {
       return
     }
 
-    const title = form.anchorName
+    const generatedTitle = form.anchorName
       ? `Fellowship — ${form.anchorName}`
       : `Fellowship ${form.fellowshipDate}`
+    const title = editingPresentationTitle || generatedTitle
+    const date = form.fellowshipDate || editingPresentationDate || ''
+
+    if (!date) {
+      toast.error('Please enter the fellowship date')
+      return
+    }
 
     setIsSaving(true)
     try {
-      await savePresentation({ title, date: form.fellowshipDate, slides })
-      toast.success('Presentation saved!')
+      if (editingPresentationId) {
+        await updatePresentation({ id: editingPresentationId, title, date, slides })
+        toast.success('Presentation updated!')
+      } else {
+        await savePresentation({ title, date, slides })
+        toast.success('Presentation saved!')
+      }
     } catch {
       toast.error('Failed to save')
     } finally {
@@ -323,6 +347,12 @@ export function CreateForm() {
           <h1 className="text-2xl font-bold text-[#1a3a5c]">New Presentation</h1>
           <p className="text-sm text-gray-500 mt-0.5">Fill in the details below to generate slides</p>
         </div>
+
+        {editingPresentationId && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            Editing saved presentation: {editingPresentationTitle || 'Untitled presentation'}
+          </div>
+        )}
 
         {/* Church Logo */}
         <div className="flex items-center gap-3 p-3 rounded-lg border bg-gray-50">
@@ -714,7 +744,10 @@ export function CreateForm() {
             {isSaving ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Save className="w-4 h-4" />
+              <>
+                <Save className="w-4 h-4 mr-1" />
+                {editingPresentationId ? 'Update' : 'Save'}
+              </>
             )}
           </Button>
         </div>

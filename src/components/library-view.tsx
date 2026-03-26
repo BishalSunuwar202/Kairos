@@ -6,7 +6,7 @@ import { usePresentationStore } from '@/store/presentation-store'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Link2, Play, Trash2 } from 'lucide-react'
+import { Link2, Pencil, Play, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import type { Presentation, Slide } from '@/lib/types'
@@ -16,7 +16,7 @@ interface LibraryViewProps {
 }
 
 export function LibraryView({ presentations }: LibraryViewProps) {
-  const { setSlides, setIsPresenting } = usePresentationStore()
+  const { setSlides, setIsPresenting, startEditingPresentation, clearEditingPresentation } = usePresentationStore()
   const router = useRouter()
   const [items, setItems] = useState(presentations)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -40,7 +40,13 @@ export function LibraryView({ presentations }: LibraryViewProps) {
   }
 
   function handleLoad(slides: Slide[]) {
+    clearEditingPresentation()
     setSlides(slides)
+    router.push('/')
+  }
+
+  function handleEdit(presentation: Presentation) {
+    startEditingPresentation(presentation)
     router.push('/')
   }
 
@@ -77,7 +83,15 @@ export function LibraryView({ presentations }: LibraryViewProps) {
             <Button
               size="sm"
               variant="outline"
+              onClick={() => handleEdit(p)}
+            >
+              <Pencil className="w-3 h-3 mr-1" /> Edit
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
               onClick={() => {
+                clearEditingPresentation()
                 setSlides(p.slides)
                 setIsPresenting(true)
                 router.push('/')

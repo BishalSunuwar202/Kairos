@@ -42,6 +42,38 @@ export async function savePresentation(data: {
   revalidatePath('/library')
 }
 
+export async function updatePresentation(data: {
+  id: string
+  title: string
+  date: string
+  slides: Slide[]
+}) {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data: updated, error } = await supabase
+    .from('presentations')
+    .update({
+      title: data.title,
+      date: data.date,
+      slides: data.slides,
+    })
+    .eq('id', data.id)
+    .eq('user_id', user.id)
+    .select('id')
+
+  if (error) throw new Error(error.message)
+  if (!updated || updated.length === 0) {
+    throw new Error('Presentation was not updated')
+  }
+
+  revalidatePath('/library')
+}
+
 export async function deletePresentation(id: string) {
   const supabase = await createClient()
   const {

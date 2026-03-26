@@ -8,6 +8,11 @@ interface PresentationStore {
   insertSlide: (afterIndex: number, slide: Omit<Slide, 'id'>) => void
   moveSlide: (fromIndex: number, toIndex: number) => void
   applyFormatToAll: (patch: Partial<SlideFormat>) => void
+  editingPresentationId: string | null
+  editingPresentationTitle: string | null
+  editingPresentationDate: string | null
+  startEditingPresentation: (presentation: { id: string; title: string; date: string; slides: Slide[] }) => void
+  clearEditingPresentation: () => void
 
   isPresenting: boolean
   setIsPresenting: (value: boolean) => void
@@ -63,6 +68,23 @@ export const usePresentationStore = create<PresentationStore>((set, get) => ({
     }))
     set({ slides })
   },
+  editingPresentationId: null,
+  editingPresentationTitle: null,
+  editingPresentationDate: null,
+  startEditingPresentation: (presentation) =>
+    set({
+      editingPresentationId: presentation.id,
+      editingPresentationTitle: presentation.title,
+      editingPresentationDate: presentation.date,
+      slides: presentation.slides,
+      currentSlide: 0,
+    }),
+  clearEditingPresentation: () =>
+    set({
+      editingPresentationId: null,
+      editingPresentationTitle: null,
+      editingPresentationDate: null,
+    }),
 
   isPresenting: false,
   setIsPresenting: (value) => set({ isPresenting: value }),
