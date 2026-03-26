@@ -26,6 +26,7 @@ export async function POST(req: Request) {
     bibleReaderVerse: body.bibleReaderVerse,
     bibleReaderText: body.bibleReaderText,
     sermonLeader: body.sermonLeader,
+    sermonTopicText: body.sermonTopicText,
     songs: body.songs.map((s, i) => ({
       songNumber: i + 1,
       title: s.title || `Song ${i + 1}`,
@@ -81,8 +82,11 @@ For the opening-prayer slide:
 - Set "content" to a short Nepali opening prayer suitable before worship or fellowship begins.
 
 For the sermon slide:
+- Create this slide if sermonLeader or sermonTopicText is provided.
 - Set "title" to "बचन"
-- Set "content" to sermonLeader exactly as provided
+- If sermonTopicText is provided, set "content" to sermonTopicText exactly as provided.
+- If sermonLeader is also provided, set "subtitle" to sermonLeader exactly as provided.
+- If sermonTopicText is empty, set "content" to sermonLeader exactly as provided.
 
 For the special-time slide:
 - Only create this slide if specialTimeName is provided.

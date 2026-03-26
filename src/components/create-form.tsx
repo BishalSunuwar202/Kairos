@@ -53,6 +53,7 @@ export function CreateForm() {
     bibleReaderVerse: '',
     bibleReaderText: '',
     sermonLeader: '',
+    sermonTopicText: '',
   })
   const [songs, setSongs] = useState<SongState[]>([emptySong()])
   const [worshipSongs, setWorshipSongs] = useState<SongState[]>([emptySong()])
@@ -449,6 +450,19 @@ export function CreateForm() {
               onChange={handleChange}
             />
           </div>
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="sermonTopicText">Sermon Topic / Notes</Label>
+          <Textarea
+            id="sermonTopicText"
+            name="sermonTopicText"
+            placeholder="Write or paste the prepared sermon topic, outline, notes, or message here"
+            rows={6}
+            value={form.sermonTopicText}
+            onChange={handleChange}
+            className="text-sm"
+          />
         </div>
 
         <div className="space-y-1">

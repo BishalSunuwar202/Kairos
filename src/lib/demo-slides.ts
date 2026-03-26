@@ -11,6 +11,7 @@ export const DEMO_FORM = {
   bibleReaderVerse: 'John 3:16',
   bibleReaderText: 'किनभने परमेश्वरले संसारलाई यति प्रेम गर्नुभयो कि उहाँले आफ्नो एकमात्र पुत्र दिनुभयो, ताकि जो कोही उहाँमाथि विश्वास गर्दछ, नाश हुनेछैन तर अनन्त जीवन पाउनेछ।',
   sermonLeader: 'Pastor Ramesh Shrestha',
+  sermonTopicText: 'विश्वास, आशा, र प्रेममा स्थिर रहौं। कठिन समयमा पनि परमेश्वरको वचनमा अडिग रहनु हाम्रो बोलावट हो।',
 }
 
 export const DEMO_SONGS = [
@@ -91,8 +92,9 @@ export const DEMO_SLIDES: Slide[] = [
   {
     id: 9,
     type: 'sermon',
-    title: 'उपदेश',
-    content: 'पास्टर रमेश श्रेष्ठ',
+    title: 'बचन',
+    subtitle: 'Pastor Ramesh Shrestha',
+    content: 'विश्वास, आशा, र प्रेममा स्थिर रहौं। कठिन समयमा पनि परमेश्वरको वचनमा अडिग रहनु हाम्रो बोलावट हो।',
   },
   {
     id: 10,

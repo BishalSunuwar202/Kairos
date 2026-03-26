@@ -75,6 +75,7 @@ export interface GenerateRequest {
   bibleReaderVerse: string
   bibleReaderText: string
   sermonLeader: string
+  sermonTopicText: string
   songs: SongEntry[]
   worshipSongs: SongEntry[]
   bibleRefs: BibleEntry[]
