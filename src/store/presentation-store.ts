@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Slide, SlideFormat } from '@/lib/types'
+import type { PresentationFormData, Slide, SlideFormat } from '@/lib/types'
 
 interface PresentationStore {
   slides: Slide[]
@@ -11,7 +11,14 @@ interface PresentationStore {
   editingPresentationId: string | null
   editingPresentationTitle: string | null
   editingPresentationDate: string | null
-  startEditingPresentation: (presentation: { id: string; title: string; date: string; slides: Slide[] }) => void
+  editingPresentationFormData: PresentationFormData | null
+  startEditingPresentation: (presentation: {
+    id: string
+    title: string
+    date: string
+    slides: Slide[]
+    form_data?: PresentationFormData | null
+  }) => void
   clearEditingPresentation: () => void
 
   isPresenting: boolean
@@ -71,11 +78,13 @@ export const usePresentationStore = create<PresentationStore>((set, get) => ({
   editingPresentationId: null,
   editingPresentationTitle: null,
   editingPresentationDate: null,
+  editingPresentationFormData: null,
   startEditingPresentation: (presentation) =>
     set({
       editingPresentationId: presentation.id,
       editingPresentationTitle: presentation.title,
       editingPresentationDate: presentation.date,
+      editingPresentationFormData: presentation.form_data ?? null,
       slides: presentation.slides,
       currentSlide: 0,
     }),
@@ -84,6 +93,7 @@ export const usePresentationStore = create<PresentationStore>((set, get) => ({
       editingPresentationId: null,
       editingPresentationTitle: null,
       editingPresentationDate: null,
+      editingPresentationFormData: null,
     }),
 
   isPresenting: false,

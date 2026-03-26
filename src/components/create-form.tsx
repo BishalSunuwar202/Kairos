@@ -14,7 +14,7 @@ import { savePresentation, updatePresentation } from '@/actions/presentation-act
 import { lookupBible, lookupBibleRange, lookupSong } from '@/actions/lookup-actions'
 import { toast } from 'sonner'
 import { Check, ImageIcon, Loader2, Play, Plus, Save, Trash2, X } from 'lucide-react'
-import type { BibleEntry, GenerateRequest, Slide, SongEntry } from '@/lib/types'
+import type { BibleEntry, GenerateRequest, PresentationFormData, Slide, SongEntry, SongFormEntry } from '@/lib/types'
 import { DEMO_BIBLE_REFS, DEMO_FORM, DEMO_SLIDES, DEMO_SONGS, DEMO_WORSHIP_SONGS } from '@/lib/demo-slides'
 
 const CREED_SLIDE_ID = -999
@@ -28,10 +28,20 @@ const CREED_SLIDE: Slide = {
 म विश्वास गर्दछु पवित्र आत्मामाथि; पवित्र मण्डलीमाथि; पवित्रहरूको सङ्गतिमाथि; पाप मोचनमाथि; शरीरको पुनरुत्थानमाथी; र अजम्मरी जीवनमाथि। आमिन्।`,
 }
 
-interface SongState {
-  number: string
-  title: string
-  lyricsText: string
+type SongState = SongFormEntry
+
+const EMPTY_FORM = {
+  fellowshipDate: '',
+  anchorName: '',
+  offeringServiceName: '',
+  offeringPrayerName: '',
+  lastPrayerName: '',
+  specialTimeName: '',
+  bibleReaderName: '',
+  bibleReaderVerse: '',
+  bibleReaderText: '',
+  sermonLeader: '',
+  sermonTopicText: '',
 }
 
 function emptySong(): SongState {
@@ -49,23 +59,12 @@ export function CreateForm() {
     editingPresentationId,
     editingPresentationTitle,
     editingPresentationDate,
+    editingPresentationFormData,
     clearEditingPresentation,
   } =
     usePresentationStore()
 
-  const [form, setForm] = useState({
-    fellowshipDate: '',
-    anchorName: '',
-    offeringServiceName: '',
-    offeringPrayerName: '',
-    lastPrayerName: '',
-    specialTimeName: '',
-    bibleReaderName: '',
-    bibleReaderVerse: '',
-    bibleReaderText: '',
-    sermonLeader: '',
-    sermonTopicText: '',
-  })
+  const [form, setForm] = useState(EMPTY_FORM)
   const [songs, setSongs] = useState<SongState[]>([emptySong()])
   const [worshipSongs, setWorshipSongs] = useState<SongState[]>([emptySong()])
   const [bibleRefs, setBibleRefs] = useState<BibleEntry[]>([{ ref: '', text: '' }])
@@ -83,6 +82,45 @@ export function CreateForm() {
   useEffect(() => {
     setLogoUrl(localStorage.getItem('kairos_church_logo'))
   }, [])
+
+  useEffect(() => {
+    if (!editingPresentationId) return
+
+    if (!editingPresentationFormData) {
+      setForm(EMPTY_FORM)
+      setSongs([emptySong()])
+      setWorshipSongs([emptySong()])
+      setBibleRefs([{ ref: '', text: '' }])
+      setIncludeCreed(false)
+      return
+    }
+
+    setForm({
+      fellowshipDate: editingPresentationFormData.fellowshipDate,
+      anchorName: editingPresentationFormData.anchorName,
+      offeringServiceName: editingPresentationFormData.offeringServiceName,
+      offeringPrayerName: editingPresentationFormData.offeringPrayerName,
+      lastPrayerName: editingPresentationFormData.lastPrayerName,
+      specialTimeName: editingPresentationFormData.specialTimeName,
+      bibleReaderName: editingPresentationFormData.bibleReaderName,
+      bibleReaderVerse: editingPresentationFormData.bibleReaderVerse,
+      bibleReaderText: editingPresentationFormData.bibleReaderText,
+      sermonLeader: editingPresentationFormData.sermonLeader,
+      sermonTopicText: editingPresentationFormData.sermonTopicText,
+    })
+    setSongs(editingPresentationFormData.songs.length > 0 ? editingPresentationFormData.songs : [emptySong()])
+    setWorshipSongs(
+      editingPresentationFormData.worshipSongs.length > 0
+        ? editingPresentationFormData.worshipSongs
+        : [emptySong()]
+    )
+    setBibleRefs(
+      editingPresentationFormData.bibleRefs.length > 0
+        ? editingPresentationFormData.bibleRefs
+        : [{ ref: '', text: '' }]
+    )
+    setIncludeCreed(editingPresentationFormData.includeCreed)
+  }, [editingPresentationFormData, editingPresentationId])
 
   function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -323,13 +361,21 @@ export function CreateForm() {
       return
     }
 
+    const formData: PresentationFormData = {
+      ...form,
+      songs,
+      worshipSongs,
+      bibleRefs,
+      includeCreed,
+    }
+
     setIsSaving(true)
     try {
       if (editingPresentationId) {
-        await updatePresentation({ id: editingPresentationId, title, date, slides })
+        await updatePresentation({ id: editingPresentationId, title, date, slides, formData })
         toast.success('Presentation updated!')
       } else {
-        await savePresentation({ title, date, slides })
+        await savePresentation({ title, date, slides, formData })
         toast.success('Presentation saved!')
       }
     } catch {
@@ -351,6 +397,12 @@ export function CreateForm() {
         {editingPresentationId && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
             Editing saved presentation: {editingPresentationTitle || 'Untitled presentation'}
+          </div>
+        )}
+
+        {editingPresentationId && !editingPresentationFormData && (
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+            This older saved presentation has slides only. Form fields cannot be prefilled until you save it again.
           </div>
         )}
 

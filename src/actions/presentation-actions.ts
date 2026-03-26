@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type { Slide, Presentation } from '@/lib/types'
+import type { Presentation, PresentationFormData, Slide } from '@/lib/types'
 
 export async function listPresentations(): Promise<Presentation[]> {
   const supabase = await createClient()
@@ -25,6 +25,7 @@ export async function savePresentation(data: {
   title: string
   date: string
   slides: Slide[]
+  formData: PresentationFormData
 }) {
   const supabase = await createClient()
 
@@ -36,6 +37,7 @@ export async function savePresentation(data: {
     title: data.title,
     date: data.date,
     slides: data.slides,
+    form_data: data.formData,
   })
 
   if (error) throw new Error(error.message)
@@ -47,6 +49,7 @@ export async function updatePresentation(data: {
   title: string
   date: string
   slides: Slide[]
+  formData: PresentationFormData
 }) {
   const supabase = await createClient()
 
@@ -61,6 +64,7 @@ export async function updatePresentation(data: {
       title: data.title,
       date: data.date,
       slides: data.slides,
+      form_data: data.formData,
     })
     .eq('id', data.id)
     .eq('user_id', user.id)

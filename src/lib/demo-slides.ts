@@ -1,6 +1,6 @@
-import type { Slide } from './types'
+import type { PresentationFormData, Slide } from './types'
 
-export const DEMO_FORM = {
+export const DEMO_FORM: Omit<PresentationFormData, 'songs' | 'worshipSongs' | 'bibleRefs' | 'includeCreed'> = {
   fellowshipDate: '2026-03-15',
   anchorName: 'Bishal Sunuwar',
   offeringServiceName: 'Sagar Tamang',

@@ -42,6 +42,7 @@ export interface Presentation {
   title: string
   date: string
   slides: Slide[]
+  form_data?: PresentationFormData | null
   created_at: string
 }
 
@@ -55,6 +56,12 @@ export interface ProjectorSessionState {
 }
 
 export interface SongEntry {
+  title: string
+  lyricsText: string
+}
+
+export interface SongFormEntry {
+  number: string
   title: string
   lyricsText: string
 }
@@ -79,6 +86,24 @@ export interface GenerateRequest {
   songs: SongEntry[]
   worshipSongs: SongEntry[]
   bibleRefs: BibleEntry[]
+}
+
+export interface PresentationFormData {
+  fellowshipDate: string
+  anchorName: string
+  offeringServiceName: string
+  offeringPrayerName: string
+  lastPrayerName: string
+  specialTimeName: string
+  bibleReaderName: string
+  bibleReaderVerse: string
+  bibleReaderText: string
+  sermonLeader: string
+  sermonTopicText: string
+  songs: SongFormEntry[]
+  worshipSongs: SongFormEntry[]
+  bibleRefs: BibleEntry[]
+  includeCreed: boolean
 }
 
 export const SLIDE_COLORS: Record<SlideType, string> = {
