@@ -11,12 +11,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { QuickAddModal } from './quick-add-modal'
 import { toast } from 'sonner'
 import type { ProjectorSessionState } from '@/lib/types'
+import { createClient } from '@/lib/supabase/client'
 
 const CHANNEL_NAME = 'kairos-projector'
 const STORAGE_KEY = 'kairos_projector_session'
 
 export function SlideViewer() {
-  const { slides, currentSlide, isPresenting, setIsPresenting, nextSlide, prevSlide, setCurrentSlide } =
+  const { slides, currentSlide, isPresenting, setIsPresenting, nextSlide, prevSlide, setCurrentSlide, isDemoMode } =
     usePresentationStore()
   const containerRef = useRef<HTMLDivElement>(null)
   const projectorWindowRef = useRef<Window | null>(null)
@@ -26,6 +27,17 @@ export function SlideViewer() {
   const [showNextPanel, setShowNextPanel] = useState(true)
   const [showSlideGrid, setShowSlideGrid] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
+
+  function handleDemoSignIn() {
+    const supabase = createClient()
+    supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback`,
+        queryParams: { prompt: 'select_account' },
+      },
+    })
+  }
 
   useEffect(() => {
     setLogoUrl(localStorage.getItem('kairos_church_logo'))
@@ -275,6 +287,20 @@ export function SlideViewer() {
             </Button>
           </div>
         </div>
+
+        {isDemoMode && (
+          <div className="absolute bottom-16 left-0 right-0 flex justify-center z-50 pointer-events-none">
+            <div className="bg-[#1a3a5c] border border-[#f59e0b] rounded-lg px-5 py-3 flex items-center gap-4 pointer-events-auto shadow-xl">
+              <span className="text-white text-sm">Like what you see?</span>
+              <button
+                onClick={handleDemoSignIn}
+                className="bg-[#f59e0b] text-[#1a3a5c] text-sm font-semibold px-4 py-1.5 rounded-md hover:bg-[#d97706] transition-colors"
+              >
+                Sign in to create your own
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   )

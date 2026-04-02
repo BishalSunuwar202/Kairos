@@ -42,11 +42,11 @@ export function Navbar({ user }: NavbarProps) {
     <header className="bg-[#1a3a5c] text-white">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link href="/" className="font-bold text-lg flex items-center gap-2 hover:text-[#f59e0b] transition-colors">
+          <Link href="/create" className="font-bold text-lg flex items-center gap-2 hover:text-[#f59e0b] transition-colors">
             ✝ Fellowship Builder
           </Link>
           <nav className="flex items-center gap-5">
-            {navLink('/', 'Create', <PenSquare className="w-4 h-4" />)}
+            {navLink('/create', 'Create', <PenSquare className="w-4 h-4" />)}
             {navLink('/library', 'Library', <BookOpen className="w-4 h-4" />)}
           </nav>
         </div>

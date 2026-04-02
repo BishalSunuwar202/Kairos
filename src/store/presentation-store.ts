@@ -23,6 +23,8 @@ interface PresentationStore {
 
   isPresenting: boolean
   setIsPresenting: (value: boolean) => void
+  isDemoMode: boolean
+  setIsDemoMode: (value: boolean) => void
 
   currentSlide: number
   setCurrentSlide: (index: number) => void
@@ -97,7 +99,9 @@ export const usePresentationStore = create<PresentationStore>((set, get) => ({
     }),
 
   isPresenting: false,
-  setIsPresenting: (value) => set({ isPresenting: value }),
+  setIsPresenting: (value) => set({ isPresenting: value, ...(value === false ? { isDemoMode: false } : {}) }),
+  isDemoMode: false,
+  setIsDemoMode: (value) => set({ isDemoMode: value }),
 
   currentSlide: 0,
   setCurrentSlide: (index) => set({ currentSlide: index }),

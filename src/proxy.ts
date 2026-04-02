@@ -10,6 +10,7 @@ export async function proxy(request: NextRequest) {
     {
       cookies: {
         getAll() {
+          
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
@@ -31,7 +32,7 @@ export async function proxy(request: NextRequest) {
 
   if (!user) {
     const url = request.nextUrl.clone()
-    url.pathname = '/login'
+    url.pathname = '/'
     return NextResponse.redirect(url)
   }
 
@@ -40,6 +41,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|login|api/auth|p/).*)',
+    '/((?!_next/static|_next/image|favicon.ico|login|api/auth|p/)(?!$).*)',
   ],
 }
