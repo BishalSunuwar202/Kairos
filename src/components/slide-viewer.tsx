@@ -6,7 +6,7 @@ import { SlideDisplay } from './slide-display'
 import { SlideMini } from './slide-mini'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, FileDown, FileText, LayoutPanelLeft, Maximize2, Minimize2, Plus, RotateCcw, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, FileDown, FileText, LayoutPanelLeft, Maximize2, Minimize2, Monitor, Plus, RotateCcw, X } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { QuickAddModal } from './quick-add-modal'
 import { toast } from 'sonner'
@@ -100,20 +100,16 @@ export function SlideViewer() {
     projectorChannelRef.current?.postMessage(session)
   }, [currentSlide, isPresenting, logoUrl, slides])
 
-  useEffect(() => {
-    if (!isPresenting || typeof window === 'undefined') return
-
+  function openProjectorWindow() {
     const projectorUrl = `${window.location.origin}/projector`
     const popup = window.open(projectorUrl, 'kairos-projector', 'popup=yes,width=1280,height=720')
-
     if (!popup) {
-      toast.error('Projector window was blocked. Allow pop-ups to use presenter mode.')
+      toast.error('Projector window was blocked. Allow pop-ups in your browser.')
       return
     }
-
     projectorWindowRef.current = popup
     popup.focus()
-  }, [isPresenting])
+  }
 
   function toggleFullscreen() {
     if (!document.fullscreenElement) {
@@ -256,6 +252,9 @@ export function SlideViewer() {
             )}
             <Button variant="ghost" size="sm" onClick={() => setShowSlideGrid(true)} title="See all slides">
               All Slides
+            </Button>
+            <Button variant="ghost" size="sm" onClick={openProjectorWindow} title="Open projector window on second screen">
+              <Monitor className="w-4 h-4 mr-1" /> Projector
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setShowAddModal(true)} title="Add slide">
               <Plus className="w-4 h-4 mr-1" /> Add
