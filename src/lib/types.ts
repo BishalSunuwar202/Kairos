@@ -11,6 +11,7 @@ export type SlideType =
   | 'sermon'
   | 'announcements'
   | 'closing-prayer'
+  | 'note'
 
 export interface SlideFormat {
   backgroundColor?: string
@@ -119,4 +120,5 @@ export const SLIDE_COLORS: Record<SlideType, string> = {
   sermon: '#f97316',
   announcements: '#14b8a6',
   'closing-prayer': '#f43f5e',
+  'note': '#6b7280',
 }

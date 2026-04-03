@@ -14,6 +14,7 @@ const TYPE_LABELS: Record<SlideType, string> = {
   'sermon':         'उपदेश',
   'announcements':  'सूचनाहरू',
   'closing-prayer': 'समापन प्रार्थना',
+  'note': 'नोट',
 }
 
 function hexNoHash(hex: string): string {
