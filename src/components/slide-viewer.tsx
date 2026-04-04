@@ -6,7 +6,7 @@ import { SlideDisplay } from './slide-display'
 import { SlideMini } from './slide-mini'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, FileDown, FileText, LayoutPanelLeft, Maximize2, Minimize2, Monitor, Plus, RotateCcw, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, FileDown, FileText, LayoutPanelLeft, Maximize2, Minimize2, Minus, Monitor, Plus, RotateCcw, X } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { QuickAddModal } from './quick-add-modal'
 import { toast } from 'sonner'
@@ -27,6 +27,8 @@ export function SlideViewer() {
   const [showNextPanel, setShowNextPanel] = useState(true)
   const [showSlideGrid, setShowSlideGrid] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [presenterTitleSize, setPresenterTitleSize] = useState(80)
+  const [presenterContentSize, setPresenterContentSize] = useState(52)
 
   function handleDemoSignIn() {
     const supabase = createClient()
@@ -89,7 +91,7 @@ export function SlideViewer() {
 
     const session: ProjectorSessionState = {
       sessionId: 'live',
-      slides,
+      slides: slides.map(applyFontOverrides),
       currentSlide,
       title: 'Live Presentation',
       logoUrl,
@@ -98,7 +100,14 @@ export function SlideViewer() {
 
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
     projectorChannelRef.current?.postMessage(session)
-  }, [currentSlide, isPresenting, logoUrl, slides])
+  }, [currentSlide, isPresenting, logoUrl, slides, presenterTitleSize, presenterContentSize])
+
+  function applyFontOverrides(s: (typeof slides)[number]) {
+    return {
+      ...s,
+      format: { ...s.format, titleSize: presenterTitleSize, contentSize: presenterContentSize },
+    }
+  }
 
   function openProjectorWindow() {
     const projectorUrl = `${window.location.origin}/projector`
@@ -172,7 +181,7 @@ export function SlideViewer() {
         <div className="flex-1 overflow-hidden flex">
           {/* Current slide */}
           <div className="flex-1 overflow-hidden">
-            <SlideDisplay slide={slide} logoUrl={logoUrl} />
+            <SlideDisplay slide={applyFontOverrides(slide)} logoUrl={logoUrl} />
           </div>
 
           {/* Next slide panel — hidden in fullscreen or when toggled off */}
@@ -186,7 +195,7 @@ export function SlideViewer() {
             {slides[currentSlide + 1] ? (
               <>
                 <div className="aspect-video w-full overflow-hidden rounded-lg shadow-lg ring-1 ring-white/10">
-                  <SlideDisplay slide={slides[currentSlide + 1]} logoUrl={logoUrl} />
+                  <SlideDisplay slide={applyFontOverrides(slides[currentSlide + 1])} logoUrl={logoUrl} />
                 </div>
                 <p className="text-xs text-gray-600 text-center tabular-nums">
                   {currentSlide + 2} / {slides.length}
@@ -237,6 +246,30 @@ export function SlideViewer() {
             >
               Mid
             </Button>
+          </div>
+
+          {/* Font size controls — presenter only */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-gray-400 font-medium w-4">T</span>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPresenterTitleSize(s => Math.max(20, s - 4))}>
+                <Minus className="w-3 h-3" />
+              </Button>
+              <span className="text-xs w-7 text-center tabular-nums text-gray-600">{presenterTitleSize}</span>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPresenterTitleSize(s => Math.min(200, s + 4))}>
+                <Plus className="w-3 h-3" />
+              </Button>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-gray-400 font-medium w-4">C</span>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPresenterContentSize(s => Math.max(12, s - 4))}>
+                <Minus className="w-3 h-3" />
+              </Button>
+              <span className="text-xs w-7 text-center tabular-nums text-gray-600">{presenterContentSize}</span>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPresenterContentSize(s => Math.min(200, s + 4))}>
+                <Plus className="w-3 h-3" />
+              </Button>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
