@@ -1,4 +1,7 @@
+'use client'
+
 import Image from 'next/image'
+import { useLayoutEffect, useRef } from 'react'
 import type { Slide, SlideType } from '@/lib/types'
 import { SLIDE_COLORS } from '@/lib/types'
 
@@ -24,6 +27,9 @@ interface SlideDisplayProps {
 }
 
 export function SlideDisplay({ slide, logoUrl }: SlideDisplayProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+
   const borderColor = SLIDE_COLORS[slide.type]
   const fmt = slide.format ?? {}
 
@@ -40,13 +46,42 @@ export function SlideDisplay({ slide, logoUrl }: SlideDisplayProps) {
   const contentWeight = fmt.contentBold ? 'bold' : 'normal'
   const contentDecoration = fmt.contentUnderline ? 'underline' : 'none'
 
+  const verticalAlign = fmt.verticalAlign ?? 'center'
   const justifyMap = { top: 'flex-start', center: 'center', bottom: 'flex-end' } as const
-  const justifyContent = justifyMap[fmt.verticalAlign ?? 'center']
+  const justifyContent = justifyMap[verticalAlign]
   const textAlign = fmt.textAlign ?? 'center'
+
+  const originMap = { top: 'top center', center: 'center', bottom: 'bottom center' } as const
+  const transformOrigin = originMap[verticalAlign]
+
+  useLayoutEffect(() => {
+    const container = containerRef.current
+    const content = contentRef.current
+    if (!container || !content) return
+
+    function fit() {
+      if (!container || !content) return
+      content.style.transform = 'none'
+
+      const available = container.clientHeight
+      const natural = content.scrollHeight
+
+      if (natural > available) {
+        content.style.transform = `scale(${available / natural})`
+        content.style.transformOrigin = transformOrigin
+      }
+    }
+
+    fit()
+    const ro = new ResizeObserver(fit)
+    ro.observe(container)
+    return () => ro.disconnect()
+  }, [slide.title, slide.content, slide.subtitle, slide.type, titleSize, contentSize, transformOrigin])
 
   return (
     <div
-      className="w-full h-full flex flex-col relative"
+      ref={containerRef}
+      className="w-full h-full flex flex-col relative overflow-hidden"
       style={{
         justifyContent,
         backgroundColor: bg,
@@ -61,41 +96,43 @@ export function SlideDisplay({ slide, logoUrl }: SlideDisplayProps) {
         {TYPE_LABELS[slide.type]}
       </span>
 
-      <h1
-        className="mb-6 leading-tight"
-        style={{
-          fontSize: titleSize,
-          color: titleColor,
-          fontWeight: titleWeight,
-          textDecoration: titleDecoration,
-          textAlign,
-        }}
-      >
-        {slide.title}
-      </h1>
+      <div ref={contentRef}>
+        <h1
+          className="mb-6 leading-tight"
+          style={{
+            fontSize: titleSize,
+            color: titleColor,
+            fontWeight: titleWeight,
+            textDecoration: titleDecoration,
+            textAlign,
+          }}
+        >
+          {slide.title}
+        </h1>
 
-      {slide.type === 'lyrics' && slide.subtitle && (
-        <p className="text-sm font-semibold uppercase tracking-widest text-gray-400 mb-3" style={{ textAlign }}>
-          {slide.subtitle}
+        {slide.type === 'lyrics' && slide.subtitle && (
+          <p className="text-sm font-semibold uppercase tracking-widest text-gray-400 mb-3" style={{ textAlign }}>
+            {slide.subtitle}
+          </p>
+        )}
+
+        <p
+          className="whitespace-pre-wrap leading-relaxed"
+          style={{
+            fontSize: contentSize,
+            color: contentColor,
+            fontWeight: contentWeight,
+            textDecoration: contentDecoration,
+            textAlign,
+          }}
+        >
+          {slide.content}
         </p>
-      )}
 
-      <p
-        className="whitespace-pre-wrap leading-relaxed"
-        style={{
-          fontSize: contentSize,
-          color: contentColor,
-          fontWeight: contentWeight,
-          textDecoration: contentDecoration,
-          textAlign,
-        }}
-      >
-        {slide.content}
-      </p>
-
-      {slide.type !== 'lyrics' && slide.subtitle && (
-        <p className="text-2xl text-gray-400 mt-4" style={{ textAlign }}>{slide.subtitle}</p>
-      )}
+        {slide.type !== 'lyrics' && slide.subtitle && (
+          <p className="text-2xl text-gray-400 mt-4" style={{ textAlign }}>{slide.subtitle}</p>
+        )}
+      </div>
 
       <div className="absolute bottom-4 right-6">
         {logoUrl
