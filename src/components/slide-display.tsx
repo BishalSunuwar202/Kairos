@@ -30,12 +30,12 @@ export function SlideDisplay({ slide, logoUrl }: SlideDisplayProps) {
   const bg = fmt.backgroundColor ?? '#ffffff'
   const pad = fmt.padding ?? 48
 
-  const titleSize = fmt.titleSize ?? 48
+  const titleSize = fmt.titleSize ?? 80
   const titleColor = fmt.titleColor ?? '#1a3a5c'
   const titleWeight = fmt.titleBold !== false ? 'bold' : 'normal'
   const titleDecoration = fmt.titleUnderline ? 'underline' : 'none'
 
-  const contentSize = fmt.contentSize ?? 30
+  const contentSize = fmt.contentSize ?? 52
   const contentColor = fmt.contentColor ?? '#374151'
   const contentWeight = fmt.contentBold ? 'bold' : 'normal'
   const contentDecoration = fmt.contentUnderline ? 'underline' : 'none'
