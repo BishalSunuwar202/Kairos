@@ -107,6 +107,16 @@ export interface PresentationFormData {
   includeCreed: boolean
 }
 
+export interface OcrExtractedData {
+  anchorName?: string
+  offeringServiceName?: string
+  offeringPrayerName?: string
+  lastPrayerName?: string
+  specialTimeName?: string
+  bibleReaderName?: string
+  sermonLeader?: string
+}
+
 export const SLIDE_COLORS: Record<SlideType, string> = {
   welcome: '#f59e0b',
   host: '#0ea5e9',

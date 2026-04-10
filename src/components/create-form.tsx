@@ -13,8 +13,8 @@ import { usePresentationStore } from '@/store/presentation-store'
 import { savePresentation, updatePresentation } from '@/actions/presentation-actions'
 import { lookupBible, lookupBibleRange, lookupSong } from '@/actions/lookup-actions'
 import { toast } from 'sonner'
-import { Check, ImageIcon, Loader2, Play, Plus, Save, Trash2, X } from 'lucide-react'
-import type { BibleEntry, GenerateRequest, PresentationFormData, Slide, SongEntry, SongFormEntry } from '@/lib/types'
+import { Check, ImageIcon, Loader2, Play, Plus, Save, ScanLine, Trash2, Upload, X } from 'lucide-react'
+import type { BibleEntry, GenerateRequest, OcrExtractedData, PresentationFormData, Slide, SongEntry, SongFormEntry } from '@/lib/types'
 import { DEMO_BIBLE_REFS, DEMO_FORM, DEMO_SLIDES, DEMO_SONGS, DEMO_WORSHIP_SONGS } from '@/lib/demo-slides'
 
 const CREED_SLIDE_ID = -999
@@ -75,9 +75,11 @@ export function CreateForm() {
   const [fetchingSong, setFetchingSong] = useState<number | null>(null)
   const [includeCreed, setIncludeCreed] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [isExtracting, setIsExtracting] = useState(false)
   const [draggedSlideIndex, setDraggedSlideIndex] = useState<number | null>(null)
   const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null)
   const logoInputRef = useRef<HTMLInputElement>(null)
+  const ocrInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setLogoUrl(localStorage.getItem('kairos_church_logo'))
@@ -138,6 +140,53 @@ export function CreateForm() {
     localStorage.removeItem('kairos_church_logo')
     setLogoUrl(null)
     if (logoInputRef.current) logoInputRef.current.value = ''
+  }
+
+  async function handleOcrUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsExtracting(true)
+    try {
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.readAsDataURL(file)
+      })
+
+      const res = await fetch('/api/ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 }),
+      })
+
+      if (!res.ok) throw new Error('OCR extraction failed')
+
+      const extracted: OcrExtractedData = await res.json()
+      const filledFields: string[] = []
+
+      setForm((prev) => {
+        const updated = { ...prev }
+        for (const [key, value] of Object.entries(extracted)) {
+          if (value && key in updated) {
+            (updated as Record<string, string>)[key] = value
+            filledFields.push(key)
+          }
+        }
+        return updated
+      })
+
+      if (filledFields.length > 0) {
+        toast.success(`Auto-filled ${filledFields.length} field${filledFields.length > 1 ? 's' : ''} from image`)
+      } else {
+        toast.error('No matching roles found in the image')
+      }
+    } catch {
+      toast.error('Failed to extract data from image. Try a clearer photo.')
+    } finally {
+      setIsExtracting(false)
+      if (ocrInputRef.current) ocrInputRef.current.value = ''
+    }
   }
 
   function toggleCreed() {
@@ -405,6 +454,41 @@ export function CreateForm() {
             This older saved presentation has slides only. Form fields cannot be prefilled until you save it again.
           </div>
         )}
+
+        {/* Auto-fill from Image */}
+        <div
+          role="button"
+          onClick={() => !isExtracting && ocrInputRef.current?.click()}
+          className={`flex items-center gap-3 p-4 rounded-lg border-2 border-dashed cursor-pointer transition-all ${
+            isExtracting
+              ? 'border-[#1a3a5c] bg-[#1a3a5c]/5'
+              : 'border-gray-300 hover:border-[#1a3a5c] hover:bg-gray-50'
+          }`}
+        >
+          <div className="h-10 w-10 rounded-full bg-[#1a3a5c]/10 flex items-center justify-center shrink-0">
+            {isExtracting ? (
+              <Loader2 className="w-5 h-5 text-[#1a3a5c] animate-spin" />
+            ) : (
+              <ScanLine className="w-5 h-5 text-[#1a3a5c]" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-[#1a3a5c]">
+              {isExtracting ? 'Extracting from image...' : 'Auto-fill from Image'}
+            </p>
+            <p className="text-xs text-gray-400">
+              Upload a schedule image (Nepali or English) to auto-fill the form
+            </p>
+          </div>
+          {!isExtracting && <Upload className="w-4 h-4 text-gray-400" />}
+        </div>
+        <input
+          ref={ocrInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleOcrUpload}
+        />
 
         {/* Church Logo */}
         <div className="flex items-center gap-3 p-3 rounded-lg border bg-gray-50">
