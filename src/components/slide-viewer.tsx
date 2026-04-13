@@ -256,7 +256,7 @@ export function SlideViewer() {
                 <Minus className="w-3 h-3" />
               </Button>
               <span className="text-xs w-7 text-center tabular-nums text-gray-600">{presenterTitleSize}</span>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPresenterTitleSize(s => Math.min(200, s + 4))}>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPresenterTitleSize(s => s + 4)}>
                 <Plus className="w-3 h-3" />
               </Button>
             </div>
@@ -266,7 +266,7 @@ export function SlideViewer() {
                 <Minus className="w-3 h-3" />
               </Button>
               <span className="text-xs w-7 text-center tabular-nums text-gray-600">{presenterContentSize}</span>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPresenterContentSize(s => Math.min(200, s + 4))}>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPresenterContentSize(s => s + 4)}>
                 <Plus className="w-3 h-3" />
               </Button>
             </div>

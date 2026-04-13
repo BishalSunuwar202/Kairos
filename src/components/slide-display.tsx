@@ -1,7 +1,6 @@
 'use client'
 
 import Image from 'next/image'
-import { useLayoutEffect, useRef } from 'react'
 import type { Slide, SlideType } from '@/lib/types'
 import { SLIDE_COLORS } from '@/lib/types'
 
@@ -27,9 +26,6 @@ interface SlideDisplayProps {
 }
 
 export function SlideDisplay({ slide, logoUrl }: SlideDisplayProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const contentRef = useRef<HTMLDivElement>(null)
-
   const borderColor = SLIDE_COLORS[slide.type]
   const fmt = slide.format ?? {}
 
@@ -51,37 +47,9 @@ export function SlideDisplay({ slide, logoUrl }: SlideDisplayProps) {
   const justifyContent = justifyMap[verticalAlign]
   const textAlign = fmt.textAlign ?? 'center'
 
-  const originMap = { top: 'top center', center: 'center', bottom: 'bottom center' } as const
-  const transformOrigin = originMap[verticalAlign]
-
-  useLayoutEffect(() => {
-    const container = containerRef.current
-    const content = contentRef.current
-    if (!container || !content) return
-
-    function fit() {
-      if (!container || !content) return
-      content.style.transform = 'none'
-
-      const available = container.clientHeight
-      const natural = content.scrollHeight
-
-      if (natural > available) {
-        content.style.transform = `scale(${available / natural})`
-        content.style.transformOrigin = transformOrigin
-      }
-    }
-
-    fit()
-    const ro = new ResizeObserver(fit)
-    ro.observe(container)
-    return () => ro.disconnect()
-  }, [slide.title, slide.content, slide.subtitle, slide.type, titleSize, contentSize, transformOrigin])
-
   return (
     <div
-      ref={containerRef}
-      className="w-full h-full flex flex-col relative overflow-hidden"
+      className="w-full h-full flex flex-col relative overflow-y-auto"
       style={{
         justifyContent,
         backgroundColor: bg,
@@ -96,7 +64,7 @@ export function SlideDisplay({ slide, logoUrl }: SlideDisplayProps) {
         {TYPE_LABELS[slide.type]}
       </span>
 
-      <div ref={contentRef}>
+      <div>
         <h1
           className="mb-6 leading-tight"
           style={{
