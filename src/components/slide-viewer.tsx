@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { usePresentationStore } from '@/store/presentation-store'
 import { SlideDisplay } from './slide-display'
 import { SlideMini } from './slide-mini'
@@ -10,14 +10,41 @@ import { ChevronLeft, ChevronRight, FileDown, FileText, LayoutPanelLeft, Maximiz
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { QuickAddModal } from './quick-add-modal'
 import { toast } from 'sonner'
-import type { ProjectorSessionState } from '@/lib/types'
+import type { ProjectorSessionState, Slide } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 
 const CHANNEL_NAME = 'kairos-projector'
 const STORAGE_KEY = 'kairos_projector_session'
+const LINES_PER_SLIDE = 4
+
+interface DisplaySlide extends Slide {
+  _originalIndex: number
+}
+
+function splitSlidesForDisplay(slides: Slide[]): DisplaySlide[] {
+  const result: DisplaySlide[] = []
+  for (let i = 0; i < slides.length; i++) {
+    const slide = slides[i]
+    const lines = slide.content.split('\n').filter(l => l.trim() !== '')
+    if (lines.length <= LINES_PER_SLIDE) {
+      result.push({ ...slide, _originalIndex: i })
+    } else {
+      for (let j = 0; j < lines.length; j += LINES_PER_SLIDE) {
+        result.push({
+          ...slide,
+          id: j === 0 ? slide.id : -(slide.id + j),
+          content: lines.slice(j, j + LINES_PER_SLIDE).join('\n'),
+          subtitle: j === 0 ? slide.subtitle : undefined,
+          _originalIndex: i,
+        })
+      }
+    }
+  }
+  return result
+}
 
 export function SlideViewer() {
-  const { slides, currentSlide, isPresenting, setIsPresenting, nextSlide, prevSlide, setCurrentSlide, isDemoMode } =
+  const { slides, currentSlide: storeCurrentSlide, isPresenting, setIsPresenting, isDemoMode } =
     usePresentationStore()
   const containerRef = useRef<HTMLDivElement>(null)
   const projectorWindowRef = useRef<Window | null>(null)
@@ -29,6 +56,30 @@ export function SlideViewer() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [presenterTitleSize, setPresenterTitleSize] = useState(80)
   const [presenterContentSize, setPresenterContentSize] = useState(52)
+
+  const displaySlides = useMemo(() => splitSlidesForDisplay(slides), [slides])
+  const [displayIndex, setDisplayIndex] = useState(0)
+
+  // Sync displayIndex when store's currentSlide changes (e.g. after QuickAddModal insert)
+  useEffect(() => {
+    const idx = displaySlides.findIndex(ds => ds._originalIndex === storeCurrentSlide)
+    if (idx >= 0) setDisplayIndex(idx)
+  }, [storeCurrentSlide, displaySlides])
+
+  // Clamp displayIndex when displaySlides shrinks
+  useEffect(() => {
+    if (displayIndex >= displaySlides.length) {
+      setDisplayIndex(Math.max(0, displaySlides.length - 1))
+    }
+  }, [displaySlides.length, displayIndex])
+
+  const nextDisplay = useCallback(() => {
+    setDisplayIndex(i => Math.min(i + 1, displaySlides.length - 1))
+  }, [displaySlides.length])
+
+  const prevDisplay = useCallback(() => {
+    setDisplayIndex(i => Math.max(i - 1, 0))
+  }, [])
 
   function handleDemoSignIn() {
     const supabase = createClient()
@@ -58,8 +109,8 @@ export function SlideViewer() {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (!isPresenting) return
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextSlide()
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prevSlide()
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextDisplay()
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prevDisplay()
       if (e.key === 'Escape') setIsPresenting(false)
     }
 
@@ -73,12 +124,12 @@ export function SlideViewer() {
       window.removeEventListener('keydown', handleKeyDown)
       document.removeEventListener('fullscreenchange', handleFullscreenChange)
     }
-  }, [isPresenting, nextSlide, prevSlide, setIsPresenting])
+  }, [isPresenting, nextDisplay, prevDisplay, setIsPresenting])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    if (!isPresenting || slides.length === 0) {
+    if (!isPresenting || displaySlides.length === 0) {
       const inactiveSession: ProjectorSessionState | null = null
       window.localStorage.removeItem(STORAGE_KEY)
       projectorChannelRef.current?.postMessage(inactiveSession)
@@ -91,8 +142,8 @@ export function SlideViewer() {
 
     const session: ProjectorSessionState = {
       sessionId: 'live',
-      slides: slides.map(applyFontOverrides),
-      currentSlide,
+      slides: displaySlides.map(applyFontOverrides),
+      currentSlide: displayIndex,
       title: 'Live Presentation',
       logoUrl,
       isActive: true,
@@ -100,7 +151,7 @@ export function SlideViewer() {
 
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
     projectorChannelRef.current?.postMessage(session)
-  }, [currentSlide, isPresenting, logoUrl, slides, presenterTitleSize, presenterContentSize])
+  }, [displayIndex, isPresenting, logoUrl, displaySlides, presenterTitleSize, presenterContentSize])
 
   function applyFontOverrides(s: (typeof slides)[number]) {
     return {
@@ -128,9 +179,10 @@ export function SlideViewer() {
     }
   }
 
-  if (!isPresenting || slides.length === 0) return null
+  if (!isPresenting || displaySlides.length === 0) return null
 
-  const slide = slides[currentSlide]
+  const slide = displaySlides[displayIndex]
+  const originalIndex = slide?._originalIndex ?? 0
 
   return (
     <>
@@ -146,7 +198,7 @@ export function SlideViewer() {
       <QuickAddModal
         open={showAddModal}
         onClose={() => setShowAddModal(false)}
-        afterIndex={currentSlide}
+        afterIndex={originalIndex}
       />
 
       <div
@@ -157,20 +209,20 @@ export function SlideViewer() {
         {showSlideGrid && (
           <div className="absolute inset-0 z-10 bg-gray-950/95 flex flex-col">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-              <p className="text-sm font-semibold text-white">All Slides ({slides.length})</p>
+              <p className="text-sm font-semibold text-white">All Slides ({displaySlides.length})</p>
               <button onClick={() => setShowSlideGrid(false)} className="text-gray-400 hover:text-white transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
               <div className="grid grid-cols-3 gap-3 max-w-2xl mx-auto">
-                {slides.map((s, i) => (
+                {displaySlides.map((s, i) => (
                   <SlideMini
                     key={s.id}
                     slide={s}
                     index={i}
-                    isActive={i === currentSlide}
-                    onClick={() => { setCurrentSlide(i); setShowSlideGrid(false) }}
+                    isActive={i === displayIndex}
+                    onClick={() => { setDisplayIndex(i); setShowSlideGrid(false) }}
                   />
                 ))}
               </div>
@@ -192,13 +244,13 @@ export function SlideViewer() {
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
-            {slides[currentSlide + 1] ? (
+            {displaySlides[displayIndex + 1] ? (
               <>
                 <div className="aspect-video w-full overflow-hidden rounded-lg shadow-lg ring-1 ring-white/10">
-                  <SlideDisplay slide={applyFontOverrides(slides[currentSlide + 1])} logoUrl={logoUrl} />
+                  <SlideDisplay slide={applyFontOverrides(displaySlides[displayIndex + 1])} logoUrl={logoUrl} />
                 </div>
                 <p className="text-xs text-gray-600 text-center tabular-nums">
-                  {currentSlide + 2} / {slides.length}
+                  {displayIndex + 2} / {displaySlides.length}
                 </p>
               </>
             ) : (
@@ -218,30 +270,30 @@ export function SlideViewer() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setCurrentSlide(0)}
-              disabled={currentSlide === 0}
+              onClick={() => setDisplayIndex(0)}
+              disabled={displayIndex === 0}
               title="Restart from beginning"
             >
               <RotateCcw className="w-4 h-4" />
             </Button>
-            <Button variant="outline" size="icon" onClick={prevSlide} disabled={currentSlide === 0}>
+            <Button variant="outline" size="icon" onClick={prevDisplay} disabled={displayIndex === 0}>
               <ChevronLeft className="w-4 h-4" />
             </Button>
             <Badge variant="secondary">
-              {currentSlide + 1} / {slides.length}
+              {displayIndex + 1} / {displaySlides.length}
             </Badge>
             <Button
               variant="outline"
               size="icon"
-              onClick={nextSlide}
-              disabled={currentSlide === slides.length - 1}
+              onClick={nextDisplay}
+              disabled={displayIndex === displaySlides.length - 1}
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setCurrentSlide(Math.floor((slides.length - 1) / 2))}
+              onClick={() => setDisplayIndex(Math.floor((displaySlides.length - 1) / 2))}
               title="Jump to middle slide"
             >
               Mid
