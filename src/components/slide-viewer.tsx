@@ -25,7 +25,7 @@ function splitSlidesForDisplay(slides: Slide[]): DisplaySlide[] {
   const result: DisplaySlide[] = []
   for (let i = 0; i < slides.length; i++) {
     const slide = slides[i]
-    const lines = slide.content.split('\n').filter(l => l.trim() !== '')
+    const lines = (slide.content ?? '').split('\n').filter(l => l.trim() !== '')
     if (lines.length <= LINES_PER_SLIDE) {
       result.push({ ...slide, _originalIndex: i })
     } else {
